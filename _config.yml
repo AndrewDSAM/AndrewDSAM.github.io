@@ -7,16 +7,18 @@
 # server process.
 
 # Basic Site Settings
-locale                   : "pt-BR"
+locale                   : "en-US"
 site_theme               : "default" # The available themes options are "default", "air", "sunrise", "mint", "dirt" and "contrast"
 title                    : "Alguma Física"
 title_separator          : "-"
 name                     : "Andrew Douglas"
-description              : &description "Your Name's academic portfolio"   # Update this with a general description of your site, this is the default if not overridden by a page
+description              : &description "Physicist Teacher at Escambo Cultural"   # Update this with a general description of your site, this is the default if not overridden by a page
 url                      : https://AndrewDSAM.github.io # The base hostname & protocol for your site e.g. "https://[your GitHub username].github.io",
                                                            # or if you already have some other page hosted on Github then use "https://[your GitHub username].github.io/[Your Repo Name]"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
-repository               : "academicpages/academicpages.github.io"
+languages                : ["en-US", "pt-BR"]
+default_lang             : "en-US"
+repository               : "andrewdsam/andrewdsam.github.io"
 
 # Site Author - The following control what appear as part of the author content on the side bar.
 #               If a field is blank the icon and link will not appear, otherwise it will be shown.
@@ -26,10 +28,10 @@ author:
   avatar           : "eu.png"
   name             : "Andrew Douglas"
   pronouns         : # example: "she/her"  
-  bio              : "Professor"
+  bio              : "Physicist Teacher"
   location         : "Rio de Janeiro, Brasil"
   employer         : "Centro Universitário ETEP"
-  uri              : # URL
+  uri              : #
   email            : "algumafisica@gmail.com"
 
   # Academic websites
