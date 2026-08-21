@@ -11,7 +11,7 @@ redirect_from:
 
 Education
 ======
-* B.Sc. in Physics Education, Centro Universitário ETEP, 2021 – 2026
+* B.Sc. in Physics, Centro Universitário ETEP, 2021 – 2026
 
 Work experience
 ======
