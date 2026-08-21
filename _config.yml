@@ -26,9 +26,9 @@ author:
   avatar           : "eu.png"
   name             : "Andrew Douglas"
   pronouns         : # example: "she/her"  
-  bio              : "Short biography for the left-hand sidebar"
-  location         : "Earth"
-  employer         : "Etep"
+  bio              : "Professor"
+  location         : "Rio de Janeiro, Brasil"
+  employer         : "Centro Universitário ETEP"
   uri              : # URL
   email            : "adsamc25@gmail.com"
 
@@ -64,7 +64,7 @@ author:
   goodreads        : # Username
   google_plus      : # Username
   keybase          : # Username
-  instagram        : # Username
+  instagram        : "Andrewdoug25" # Username 
   lastfm           : # Username
   linkedin         : # Username
   mastodon         : # URL
@@ -107,7 +107,7 @@ comments:
   facebook:
     appid                :
     num_posts            : # 5 (default)
-    colorscheme          : # "light" (default), "dark"
+    colorscheme          : "dark" # "light" (default), "dark"
 staticman:
   allowedFields          : ['name', 'email', 'url', 'message']
   branch                 : "gh-pages" # "master", "gh-pages"
