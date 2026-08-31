@@ -6,8 +6,8 @@ permalink: /publication/TCC
 excerpt: 'This paper is about the number 1. The number 2 is left for future work.'
 date: 2025-10-10
 venue: 'Journal 1'
-slidesurl: 'AndrewDSAM.github.io/files/TCC_Andrew_Órbitas_Planetárias_Unificado.pdf'
-paperurl: 'AndrewDSAM.github.io/files/TCC_Andrew_Órbitas_Planetárias_Unificado.pdf'
+slidesurl: '/files/TCC_Andrew_Órbitas_Planetárias_Unificado.pdf'
+paperurl: '/files/TCC_Andrew_Órbitas_Planetárias_Unificado.pdf'
 bibtexurl: 'https://academicpages.github.io/files/bibtex1.bib'
 citation: 'Your Name, You. (2009). &quot;Paper Title Number 1.&quot; <i>Journal 1</i>. 1(1).'
 ---
