@@ -12,7 +12,7 @@ site_theme               : "default" # The available themes options are "default
 title                    : "Home"
 title_separator          : ""
 name                     : "Andrew Douglas"
-description              : &description "Physicist Teacher at Escambo Cultural"   # Update this with a general description of your site, this is the default if not overridden by a page
+description              : &description "Professor de Física Escambo Cultural"   # Update this with a general description of your site, this is the default if not overridden by a page
 url                      : https://AndrewDSAM.github.io # The base hostname & protocol for your site e.g. "https://[your GitHub username].github.io",
                                                            # or if you already have some other page hosted on Github then use "https://[your GitHub username].github.io/[Your Repo Name]"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
@@ -28,7 +28,7 @@ author:
   avatar           : "eu.png"
   name             : "Andrew Douglas"
   pronouns         : # example: "she/her"  
-  bio              : "Physicist Teacher"
+  bio              : "Professor de Física"
   location         : "Rio de Janeiro, Brasil"
   employer         : "Centro Universitário ETEP"
   uri              : #
@@ -87,11 +87,11 @@ author:
 # Publication Category - The following the list of publication categories and their headings
 publication_category:
   books:
-    title: 'Books'
+    title: 'Livros'
   manuscripts:
-    title: 'Undergraduate Thesis'    
+    title: 'Trabalho de Conclusão de Curso da Graduação'    
   conferences:
-    title: 'Conference Papers'
+    title: 'Papers'
 
 # Site Settings
 teaser                   :  # filename of teaser fallback teaser image placed in /images/ for social media previews
