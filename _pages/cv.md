@@ -12,6 +12,7 @@ redirect_from:
 Formação
 ======
 * Licenciatura em Física, Centro Universitário ETEP, 2026
+* Licenciatura em História, UniFATECIE, (cursando)
 
 Experiência de Trabalho 
 ======
