@@ -9,37 +9,29 @@ redirect_from:
 
 {% include base_path %}
 
-Education
+Formação
 ======
-* Ph.D in Version Control Theory, GitHub University, 2018 (expected)
-* M.S. in Jekyll, GitHub University, 2014
-* B.S. in GitHub, GitHub University, 2012
+* Licenciatura em Física, Centro Universitário ETEP, 2026
 
-Work experience
+Experiência de Trabalho 
 ======
-* Spring 2024: Academic Pages Collaborator
-  * GitHub University
-  * Duties includes: Updates and improvements to template
+* Junho de 2026 até Atual: Professor de Física 
+  * Escambo Cultural
+  * Competências: Ministro aulas de Física para alunos que desejam realizar vestibulares, desde o ENEM até vestibulares das próprias Universidades e também provas militares.
+  
+
+* Março de 2021 até Atual: Militar 
+  * Exército brasileiro
+  * Competências: 
   * Supervisor: The Users
 
-* Fall 2015: Research Assistant
-  * GitHub University
-  * Duties included: Merging pull requests
-  * Supervisor: Professor Hub
-
-* Summer 2015: Research Assistant
-  * GitHub University
-  * Duties included: Tagging issues
-  * Supervisor: Professor Git
   
-Skills
+Habilidades
 ======
-* Skill 1
-* Skill 2
-  * Sub-skill 2.1
-  * Sub-skill 2.2
-  * Sub-skill 2.3
-* Skill 3
+* Comunicação
+* Liderança
+* Organização
+
 
 Publications
 ======
