@@ -100,3 +100,17 @@ Jack admirava muito a disciplina e o entusiasmo do soldado alemão comum. Certa 
 Em casa, segundo seu filho, era um homem pacífico e despretensioso. "As pessoas são menos propensas a atirar em você se você sorrir para elas" era outro de seus ditados favoritos.
 
 John Malcolm Thorpe Fleming Churchill morreu aos 89 anos, em Surrey.
+
+## Fontes
+
+BIBBY, Miriam. Fighting Jack Churchill. Historic UK. Disponível em: https://www.historic-uk.com/HistoryUK/HistoryofBritain/Fighting-Jack_Churchill/. 
+
+CHURCHILL, John Malcolm Thorpe Fleming (Lt Col). Commando Veterans Archive. Disponível em: https://www.commandoveterans.org/book/export/html/8.  
+
+ANGIER, Tabby. Churchill's War Pipe. Bagpipe News, 25 mar. 2019. Disponível em: https://bagpipe.news/2019/03/25/churchills-war-pipe/.
+
+SERENA, Katie. The Story Of 'Mad Jack' Churchill, The Sword-Wielding British Commando Who Became A Legend During World War II. All That's Interesting, 3 jan. 2023. Disponível em: https://allthatsinteresting.com/mad-jack-churchill. 
+
+OORD, Christian. 'Mad' Jack Churchill – The Only Man to Dispatch a German Soldier With a Longbow in WW2. War History Online, 9 dez. 2018. Disponível em: https://www.warhistoryonline.com/instant-articles/jack-churchill-carry-a-sword.html.
+
+BARR SMITH, Robert. Mad Jack Churchill: A Rare Breed of Warrior. Warfare History Network. Disponível em: https://warfarehistorynetwork.com/article/mad-jack-churchill-a-rare-breed-of-warrior/.
