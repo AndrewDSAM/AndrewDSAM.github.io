@@ -12,16 +12,16 @@ main:
 
 
 
-  - title: "Publications"
+  - title: "Publicações"
     url: /publications/
 
-  - title: "Talks"
+  - title: "Apresentações"
     url: /talks/    
 
-  - title: "Teaching"
+  - title: "Aulas"
     url: /teaching/    
         
-  - title: "Blog Posts"
+  - title: "Postagens"
     url: /year-archive/
     
   - title: "CV"
