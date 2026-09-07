@@ -15,13 +15,13 @@ main:
   - title: "Publicações"
     url: /publications/
 
-  - title: "Apresentações"
+  - title: "Talks"
     url: /talks/    
 
   - title: "Aulas"
     url: /teaching/    
         
-  - title: "Postagens"
+  - title: "Curiosidades"
     url: /year-archive/
     
   - title: "CV"
