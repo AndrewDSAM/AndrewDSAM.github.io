@@ -1,6 +1,6 @@
 ---
 title: 'Mad Jack Churchill'
-date: 2026-09-08
+date: 2026-09-07
 permalink: /posts/mad-jack-churchill/
 tags:
   - Herói
