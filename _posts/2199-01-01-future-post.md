@@ -10,6 +10,7 @@ tags:
 # Mad Jack Churchill: o comandante que ia à guerra com espada, arco e gaita de foles
 
 ![Churchill](/images/churchill3.jpg)
+
 <small>Tenente "Mad" Jack.</small>
 
 Muito se fala sobre a Segunda Guerra Mundial, mas mesmo assim existem muitos personagens que foram completamente impressionantes e continuam sendo tão pouco conhecidos — e hoje falaremos de um deles.
@@ -31,6 +32,7 @@ Na mesma motocicleta, percorreu as 500 milhas (805 km) entre Maymyo e Rangum, vi
 De volta à Inglaterra em 1932, Churchill continuou estudando gaita de foles, mas o exército em tempos de paz passou a lhe interessar cada vez menos. Churchill era um daqueles homens incomuns feitos para o combate, e esses homens costumam ser inquietos em tempos de paz. Depois de dez anos de serviço, renunciou à sua comissão e se voltou para empreendimentos comerciais: trabalhou em um jornal em Nairóbi, atuou como figurante no cinema e chegou a competir no tiro com arco, representando a Grã-Bretanha no campeonato mundial em Oslo, em 1939.
 
 ![Churchill](/images/churchill2.jpg)
+
 <small>Churchill no campeonato mundial em Oslo, 1939.</small>
 
 ## O retorno à guerra e Dunkirk
@@ -42,6 +44,7 @@ Patrulhar um trecho tranquilo da França durante a "Sitzkrieg" (termo que se ref
 O diário de guerra da 4ª Brigada de Infantaria, à qual pertencia o batalhão de Churchill, registrou essa figura extraordinária: "Uma das visões mais reconfortantes do embarque [em Dunkirk] foi a do Capitão Churchill andando pela praia com seu arco e flechas. Seu exemplo e seu grande trabalho foram de grande ajuda para a 4ª Brigada de Infantaria."
 
 ![Churchill](/images/churchill4.jpg)
+
 <small>Cap.Churchill em Dunkirk.</small>
 
 Churchill chegou a Dunkirk, supostamente de motocicleta (uma OHV Zenith de 1923), com o arco e as flechas pendurados no quadro do veículo. De lá foi levado de volta à Inglaterra — assim como seus companheiros de Manchester — graças à bravura da Marinha Real e de uma horda de barcos e navios civis. Foi então que ouviu falar de uma nova organização em formação. Parecia exatamente o tipo de coisa para a qual Churchill havia nascido: os pedidos de voluntários eram vagos, mas prometiam serviço agressivo, e isso já era suficiente para ele. Qualquer coisa que fosse um *comando*, ele seria um.
@@ -67,6 +70,7 @@ O primeiro posto, guarnecido por dois homens, foi tomado em silêncio: Jack Chur
 Ao final, Churchill e o cabo Ruffell haviam reunido 42 prisioneiros, com suas armas pessoais e um morteiro — Churchill e sua claymore obtiveram, sozinhos, a rendição de um grupo de dez homens posicionados ao redor da peça. Os dois então marcharam de volta às linhas britânicas.
 
 ![Churchill](/images/churchill1.jpg)
+
 <small>John Churchill observando o morteiro pego dos alemães.</small>
 
 Muito depois do fim da guerra, Churchill teve a satisfação de saber que o relato alemão sobre a luta pela colina descrevia sua gaita de foles solitária como "o som dolente de um instrumento musical desconhecido".
@@ -106,6 +110,7 @@ Em anos seguintes, serviu como instrutor na escola de guerra terrestre na Austr�
 Muitas pessoas, na época, se perguntavam se os feitos de Jack eram uma busca por reconhecimento; porém, um relato de Bob Bishop deixa isso claro: Jack nunca escreveu nada sobre sua vida e seu tempo de serviço, nem contratou um ghost-writer para fazê-lo. Felizmente, nenhum oficial que serviu no No. 2 Commando publicou um livro sobre o assunto — juntando-se aos muitos relatos já autorizados por outros coronéis de Jack em diferentes unidades dos Comandos, além de diversos relatos escritos por oficiais subalternos. O autor faz esse comentário não como crítica a esses muitos cronistas publicados, mas para ilustrar que Jack certamente tinha uma história pessoal de heroísmo digna de ser contada — mas era modesto demais para tirar proveito disso.
 
 ![Churchill](/images/churchill5.jpg)
+
 <small>Tenente Coronel Churchill falando durante exercício de campo dos comandos, Gibraltar.</small>
 
 Bob deixa ainda outra passagem que gera dúvida: diz-se, por muitos escritores fantasiosos, que Jack entrava em ação no No. 2 Commando "resplandecente com arco e flechas". Onde, porém? O autor participou de todas as operações do coronel na unidade e só viu Jack armado com claymore, gaita de foles, uma carabina americana M-1, às vezes uma pistola automática .45, um haversack, capacete com o grande emblema "SS" (do Special Service) e uma bolsa de mapas. Não teria sido o suficiente?
