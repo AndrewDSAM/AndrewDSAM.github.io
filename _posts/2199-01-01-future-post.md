@@ -71,7 +71,7 @@ Ao final, Churchill e o cabo Ruffell haviam reunido 42 prisioneiros, com suas ar
 
 ![Churchill](/images/churchill1.jpg)
 
-<small>John Churchill observando o morteiro pego dos alemães.</small>
+<small>John Churchill observando chanhão pego dos alemães.</small>
 
 Muito depois do fim da guerra, Churchill teve a satisfação de saber que o relato alemão sobre a luta pela colina descrevia sua gaita de foles solitária como "o som dolente de um instrumento musical desconhecido".
 
