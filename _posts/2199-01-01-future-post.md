@@ -9,6 +9,8 @@ tags:
 ---
 # Mad Jack Churchill: o comandante que ia à guerra com espada, arco e gaita de foles
 
+![Churchill](/images/churchill3.jpg)
+
 Muito se fala sobre a Segunda Guerra Mundial, mas mesmo assim existem muitos personagens que foram completamente impressionantes e continuam sendo tão pouco conhecidos — e hoje falaremos de um deles.
 
 John Malcolm Thorpe Fleming Churchill, ou como os mais chegados costumavam chamá-lo, "Mad Jack", nasceu em 1906 em Colombo, Ceilão (antigo nome do Sri Lanka). Sua mãe era Elinor Elizabeth Churchill e seu pai, Alec Fleming Churchill, ocupava cargos administrativos e de engenharia no serviço colonial, sendo transferido entre Ceilão e Hong Kong. Embora o pai viesse de Oxfordshire, o sobrenome remete às raízes anglo-escocesas da família.
@@ -27,6 +29,8 @@ Na mesma motocicleta, percorreu as 500 milhas (805 km) entre Maymyo e Rangum, vi
 
 De volta à Inglaterra em 1932, Churchill continuou estudando gaita de foles, mas o exército em tempos de paz passou a lhe interessar cada vez menos. Churchill era um daqueles homens incomuns feitos para o combate, e esses homens costumam ser inquietos em tempos de paz. Depois de dez anos de serviço, renunciou à sua comissão e se voltou para empreendimentos comerciais: trabalhou em um jornal em Nairóbi, atuou como figurante no cinema e chegou a competir no tiro com arco, representando a Grã-Bretanha no campeonato mundial em Oslo, em 1939.
 
+![Churchill](/images/churchill2.jpg)
+
 ## O retorno à guerra e Dunkirk
 
 Quando o exército alemão invadiu a Polônia, Jack Churchill retornou ao Exército Britânico e ao Regimento de Manchester, sendo enviado à França. "Eu estava", disse ele mais tarde, "de volta ao meu casaco vermelho; o país entrou num engarrafamento na minha ausência." Ele estava, evidentemente, feliz por ser soldado novamente.
@@ -34,6 +38,8 @@ Quando o exército alemão invadiu a Polônia, Jack Churchill retornou ao Exérc
 Patrulhar um trecho tranquilo da França durante a "Sitzkrieg" (termo que se refere à "guerra sentada", um período de oito meses no início do conflito, entre setembro de 1939 e maio de 1940, também chamado pelos franceses de "Drôle de guerre", ou "guerra de mentira") não combinava com o temperamento belicoso de Churchill. Assim, junto com outros espíritos livres, incluindo Mike Calvert (outro lendário guerreiro britânico), ele se ofereceu para integrar uma força destinada a ajudar o Exército finlandês, então sob ataque do Exército Vermelho soviético. A expedição foi cancelada antes de partir para a Finlândia, e Churchill retornou aos Manchesters a tempo de enfrentar o avanço alemão sobre a Holanda, a Bélgica e a França, em maio de 1940.
 
 O diário de guerra da 4ª Brigada de Infantaria, à qual pertencia o batalhão de Churchill, registrou essa figura extraordinária: "Uma das visões mais reconfortantes do embarque [em Dunkirk] foi a do Capitão Churchill andando pela praia com seu arco e flechas. Seu exemplo e seu grande trabalho foram de grande ajuda para a 4ª Brigada de Infantaria."
+
+![Churchill](/images/churchill4.jpg)
 
 Churchill chegou a Dunkirk, supostamente de motocicleta (uma OHV Zenith de 1923), com o arco e as flechas pendurados no quadro do veículo. De lá foi levado de volta à Inglaterra — assim como seus companheiros de Manchester — graças à bravura da Marinha Real e de uma horda de barcos e navios civis. Foi então que ouviu falar de uma nova organização em formação. Parecia exatamente o tipo de coisa para a qual Churchill havia nascido: os pedidos de voluntários eram vagos, mas prometiam serviço agressivo, e isso já era suficiente para ele. Qualquer coisa que fosse um *comando*, ele seria um.
 
@@ -56,6 +62,8 @@ Churchill costumava se colocar bem à frente de seus soldados. Espada na mão, a
 O primeiro posto, guarnecido por dois homens, foi tomado em silêncio: Jack Churchill, com a lâmina brilhando na noite, surgiu como um vulto sombrio, gritou *"Hände hoch!"* e obteve o resultado esperado. Entregou um prisioneiro a Ruffell e, com o cordão fiel de seu revólver enlaçado no pescoço do segundo, o levou para rondar os demais guardas. Cada posto, tranquilizado pela voz do companheiro capturado, rendia-se a Jack e à sua espada.
 
 Ao final, Churchill e o cabo Ruffell haviam reunido 42 prisioneiros, com suas armas pessoais e um morteiro — Churchill e sua claymore obtiveram, sozinhos, a rendição de um grupo de dez homens posicionados ao redor da peça. Os dois então marcharam de volta às linhas britânicas.
+
+![Churchill](/images/churchill1.jpg)
 
 Muito depois do fim da guerra, Churchill teve a satisfação de saber que o relato alemão sobre a luta pela colina descrevia sua gaita de foles solitária como "o som dolente de um instrumento musical desconhecido".
 
