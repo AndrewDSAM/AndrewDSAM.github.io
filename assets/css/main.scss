@@ -37,35 +37,47 @@
     "layout/sidebar",
     "layout/json_cv"
 ;
-/* Menu superior: manter todos os itens na mesma linha */
+/* ==========================================================================
+   MENU SUPERIOR — estilo equilibrado
+   Mantém todos os itens no topo em telas desktop
+   ========================================================================== */
+
 @media (min-width: 64em) {
-  .masthead__menu .greedy-nav {
-    display: flex !important;
-    align-items: center !important;
-    width: 100% !important;
-  }
 
-  .masthead__menu .greedy-nav .visible-links {
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .masthead__menu .greedy-nav .visible-links li {
-    margin-right: 0 !important;
-  }
-
+  /* Menu principal */
   .masthead__menu .greedy-nav .visible-links li a {
-    margin-left: 0.35rem !important;
-    margin-right: 0.35rem !important;
-    padding-left: 0.1rem !important;
-    padding-right: 0.1rem !important;
-    font-size: 0.88rem !important;
+    margin-left: 0.6rem !important;
+    margin-right: 0.6rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    font-size: 0.9rem !important;
   }
 
-  .masthead__menu .greedy-nav button {
-    right: 0 !important;
+  /* Primeiro item */
+  .masthead__menu .greedy-nav .visible-links li:first-child a {
+    margin-left: 0 !important;
+  }
+
+  /* Bandeiras */
+  .masthead__menu .greedy-nav .persist a {
+    margin-left: 0.2rem !important;
+    margin-right: 0.2rem !important;
+    padding: 0 !important;
+    font-size: 1rem !important;
+  }
+
+  /* Espaço antes das bandeiras */
+  .masthead__menu .greedy-nav .persist {
+    margin-left: 0.4rem !important;
+  }
+
+  /* Sol / Lua */
+  .masthead__menu .greedy-nav #theme-toggle {
+    margin-left: 0.35rem !important;
+  }
+
+  .masthead__menu .greedy-nav #theme-toggle a {
+    margin: 0 !important;
+    padding: 0.5rem 0 !important;
   }
 }
