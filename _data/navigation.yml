@@ -18,6 +18,6 @@ main:
   - title: "Aulas"
     url: /teaching/
   - title: "Curiosidades"
-    url: /portfolio/
+    url: /posts/
   - title: "CV"
     url: /cv/
