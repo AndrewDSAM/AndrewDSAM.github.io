@@ -11,8 +11,6 @@ location: "Rio de Janeiro, Brasil"
 Curso abrangendo todas as frentes da Física 1 do Ensino Médio para a preparação de alunos que realizarão os mais diversos exames vestibulares.
 
 
-# Física 1: Matriz de Conteúdos para o ENEM
-
 ## 1. Cinemática (O Estudo dos Movimentos)
 * **Conceitos Básicos:** Referencial, trajetória, espaço, velocidade média e aceleração média.
 * **Movimento Uniforme (MU):** Velocidade constante e a função horária da posição:  
