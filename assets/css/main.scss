@@ -38,46 +38,75 @@
     "layout/json_cv"
 ;
 /* ==========================================================================
-   MENU SUPERIOR — estilo equilibrado
-   Mantém todos os itens no topo em telas desktop
+   MENU SUPERIOR — estilo do exemplo
    ========================================================================== */
 
 @media (min-width: 64em) {
 
-  /* Menu principal */
-  .masthead__menu .greedy-nav .visible-links li a {
-    margin-left: 0.6rem !important;
-    margin-right: 0.6rem !important;
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.5rem !important;
+  /* Área do menu */
+  .masthead__menu .greedy-nav {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  /* Lista principal */
+  .masthead__menu .greedy-nav .visible-links {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Links principais */
+  .masthead__menu .greedy-nav .visible-links
+  > li:not(.persist):not(#theme-toggle) > a {
+    margin: 0 0.55rem !important;
+    padding: 0.5rem 0 !important;
     font-size: 0.9rem !important;
   }
 
   /* Primeiro item */
-  .masthead__menu .greedy-nav .visible-links li:first-child a {
+  .masthead__menu .greedy-nav .visible-links
+  > li:not(.persist):not(#theme-toggle):first-child > a {
     margin-left: 0 !important;
   }
 
-  /* Bandeiras */
-  .masthead__menu .greedy-nav .persist a {
-    margin-left: 0.2rem !important;
-    margin-right: 0.2rem !important;
+  /* ================================================================
+     IDIOMAS
+     Empurra as bandeiras para a direita
+     ================================================================ */
+
+  .masthead__menu .greedy-nav .visible-links
+  > li.persist:not(#theme-toggle) {
+    margin-left: auto !important;
+    padding: 0 !important;
+  }
+
+  .masthead__menu .greedy-nav .visible-links
+  > li.persist:not(#theme-toggle) a {
+    margin: 0 0.25rem !important;
     padding: 0 !important;
     font-size: 1rem !important;
   }
 
-  /* Espaço antes das bandeiras */
-  .masthead__menu .greedy-nav .persist {
+  /* ================================================================
+     SOL / LUA
+     ================================================================ */
+
+  .masthead__menu .greedy-nav .visible-links
+  > li#theme-toggle {
     margin-left: 0.4rem !important;
+    margin-right: 0 !important;
   }
 
-  /* Sol / Lua */
-  .masthead__menu .greedy-nav #theme-toggle {
-    margin-left: 0.35rem !important;
-  }
-
-  .masthead__menu .greedy-nav #theme-toggle a {
+  .masthead__menu .greedy-nav .visible-links
+  > li#theme-toggle a {
     margin: 0 !important;
     padding: 0.5rem 0 !important;
+    width: 25px !important;
   }
+
 }
