@@ -37,76 +37,35 @@
     "layout/sidebar",
     "layout/json_cv"
 ;
-/* ==========================================================================
-   MENU SUPERIOR — estilo do exemplo
-   ========================================================================== */
-
+/* Menu superior: manter todos os itens na mesma linha */
 @media (min-width: 64em) {
-
-  /* Área do menu */
   .masthead__menu .greedy-nav {
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
   }
 
-  /* Lista principal */
   .masthead__menu .greedy-nav .visible-links {
     display: flex !important;
     align-items: center !important;
-    width: 100% !important;
+    white-space: nowrap !important;
     margin: 0 !important;
     padding: 0 !important;
-    white-space: nowrap !important;
   }
 
-  /* Links principais */
-  .masthead__menu .greedy-nav .visible-links
-  > li:not(.persist):not(#theme-toggle) > a {
-    margin: 0 0.55rem !important;
-    padding: 0.5rem 0 !important;
-    font-size: 0.9rem !important;
-  }
-
-  /* Primeiro item */
-  .masthead__menu .greedy-nav .visible-links
-  > li:not(.persist):not(#theme-toggle):first-child > a {
-    margin-left: 0 !important;
-  }
-
-  /* ================================================================
-     IDIOMAS
-     Empurra as bandeiras para a direita
-     ================================================================ */
-
-  .masthead__menu .greedy-nav .visible-links
-  > li.persist:not(#theme-toggle) {
-    margin-left: auto !important;
-    padding: 0 !important;
-  }
-
-  .masthead__menu .greedy-nav .visible-links
-  > li.persist:not(#theme-toggle) a {
-    margin: 0 0.25rem !important;
-    padding: 0 !important;
-    font-size: 1rem !important;
-  }
-
-  /* ================================================================
-     SOL / LUA
-     ================================================================ */
-
-  .masthead__menu .greedy-nav .visible-links
-  > li#theme-toggle {
-    margin-left: 0.4rem !important;
+  .masthead__menu .greedy-nav .visible-links li {
     margin-right: 0 !important;
   }
 
-  .masthead__menu .greedy-nav .visible-links
-  > li#theme-toggle a {
-    margin: 0 !important;
-    padding: 0.5rem 0 !important;
-    width: 25px !important;
+  .masthead__menu .greedy-nav .visible-links li a {
+    margin-left: 0.35rem !important;
+    margin-right: 0.35rem !important;
+    padding-left: 0.1rem !important;
+    padding-right: 0.1rem !important;
+    font-size: 0.88rem !important;
   }
 
+  .masthead__menu .greedy-nav button {
+    right: 0 !important;
+  }
 }
