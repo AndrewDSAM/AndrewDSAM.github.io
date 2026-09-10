@@ -84,8 +84,8 @@ author:
 
 # Publication Category - The following the list of publication categories and their headings
 publication_category:
-  books:
-    title: 'Books'
+  tcc:
+    title: 'Trabalho de Conclusão de Curso'
   manuscripts:
     title: 'Journal Articles'    
   conferences:
