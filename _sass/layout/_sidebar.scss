@@ -154,15 +154,17 @@
   }
 
   img {
-    max-width: 175px;
+    max-width: 230px; // Aumentado de 175px para 230px para expandir o quadrado
     border-radius: 0%;
 
     @include breakpoint($large) {
       padding: 5px;
       border: 1px solid var(--global-border-color);
+      width: 100%; // Força a imagem a ocupar o novo espaço do max-width
     }
   }
 }
+
 
 .author__content {
   display: table-cell;
