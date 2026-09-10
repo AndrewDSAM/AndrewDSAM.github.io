@@ -7,28 +7,29 @@
 # NOTE that only one of the CV options should be selected, the first is for the
 #      Markdown formatted page while the second is generated using JSON.
 
+# Menu Principal em Português
 main:
-
-
-
-
+  - title: "Página Principal"
+    url: /
   - title: "Publicações"
     url: /publications/
-
   - title: "Talks"
-    url: /talks/    
-
+    url: /talks/
   - title: "Aulas"
-    url: /teaching/    
-        
+    url: /teaching/
   - title: "Curiosidades"
-    url: /year-archive/
-    
+    url: /portfolio/
   - title: "CV"
     url: /cv/
-    
-  # - title: "CV"
-  #   url: /cv-json/
-    
- # - title: "Guide"
-  #  url: /markdown/
+  - title: "🇺🇸 English"
+    url: /en/
+
+# Menu que aparecerá quando o usuário clicar na versão em Inglês
+main_en:
+  - title: "Home"
+    url: /en/
+  - title: "Publications"
+    url: /en/publications/
+  - title: "🇧🇷 Português"
+    url: /
+
