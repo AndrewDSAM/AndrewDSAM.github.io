@@ -7,7 +7,7 @@
 # NOTE that only one of the CV options should be selected, the first is for the
 #      Markdown formatted page while the second is generated using JSON.
 
-# Menu Principal em Português
+# Menu Principal
 main:
   - title: "Página Principal"
     url: /
@@ -21,18 +21,3 @@ main:
     url: /portfolio/
   - title: "CV"
     url: /cv/
-
-# Menu Principal em Inglês
-main_en:
-  - title: "Home"
-    url: /en/
-  - title: "Publications"
-    url: /en/publications/
-  - title: "Talks"
-    url: /en/talks/
-  - title: "Teaching"
-    url: /en/teaching/
-  - title: "Curiosities"
-    url: /en/portfolio/
-  - title: "CV"
-    url: /en/cv/
