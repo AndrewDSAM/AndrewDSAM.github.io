@@ -5,19 +5,34 @@
       <nav id="site-nav" class="greedy-nav">
         <button><span class="navicon"></span></button>
         <ul class="visible-links">
-          <li class="masthead__menu-item masthead__menu-item--lg persist {% if page.url == '/' or page.url == '/index.html' %}selected{% endif %}">
-            <a href="{{ base_path }}/">{{ site.title }}</a>
-          </li>
-          {% for link in site.data.navigation.main %}
-            {% if link.url contains 'http' %}
-              {% assign domain = '' %}
+          
+          <!-- Botão Inicial (Título do Site) que muda o link se estiver em inglês -->
+          <li class="masthead__menu-item masthead__menu-item--lg persist {% if page.url == '/' or page.url == '/en/' %}selected{% endif %}">
+            {% if page.url contains '/en/' %}
+              <a href="{{ base_path }}/en/">{{ site.title }}</a>
             {% else %}
-              {% assign domain = base_path %}
+              <a href="{{ base_path }}/">{{ site.title }}</a>
             {% endif %}
-            <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/' %}selected{% endif %}">
-              <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
-            </li>
-          {% endfor %}
+          </li>
+
+          <!-- Renderização Condicional dos Menus com base na URL da página -->
+          {% if page.url contains '/en/' %}
+            {% for link in site.data.navigation.main_en %}
+              {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
+              <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/en/' %}selected{% endif %}">
+                <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
+              </li>
+            {% endfor %}
+          {% else %}
+            {% for link in site.data.navigation.main %}
+              {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
+              <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/' %}selected{% endif %}">
+                <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
+              </li>
+            {% endfor %}
+          {% endif %}
+
+          <!-- Ícone de Alternar Tema (Claro/Escuro) mantido intacto no final -->
           <li id="theme-toggle" class="masthead__menu-item persist tail">
             <a role="button" aria-labelledby="theme-icon"><i id="theme-icon" class="fa-solid fa-sun" aria-hidden="true" title="toggle theme"></i></a>
           </li>
