@@ -6,7 +6,7 @@
         <button><span class="navicon"></span></button>
         <ul class="visible-links">
           
-          <!-- Botão Inicial (Título do Site) -->
+          <!-- Nome do Site (Home) -->
           <li class="masthead__menu-item masthead__menu-item--lg persist {% if page.url == '/' or page.url == '/en/' %}selected{% endif %}">
             {% if page.url contains '/en/' %}
               <a href="{{ base_path }}/en/">{{ site.title }}</a>
@@ -15,7 +15,7 @@
             {% endif %}
           </li>
 
-          <!-- Renderização Dinâmica dos Links Acadêmicos -->
+          <!-- LINKS EM INGLÊS -->
           {% if page.url contains '/en/' %}
             {% for link in site.data.navigation.main_en %}
               {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
@@ -24,6 +24,7 @@
               </li>
             {% endfor %}
           {% else %}
+          <!-- LINKS EM PORTUGUÊS -->
             {% for link in site.data.navigation.main %}
               {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
               <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/' %}selected{% endif %}">
@@ -32,57 +33,13 @@
             {% endfor %}
           {% endif %}
 
-          <!-- SELETOR DE IDIOMAS: Bandeiras lado a lado -->
-          <li class="masthead__menu-item persist lang-switcher" style="padding-right: 10px;">
-            <a href="{{ base_path }}/" title="Português" style="display: inline; padding: 0 4px; opacity: {% if page.url contains '/en/' %}0.5{% else %}1{% endif %};">🇧🇷</a>
-            <a href="{{ base_path }}/en/" title="English" style="display: inline; padding: 0 4px; opacity: {% if page.url contains '/en/' %}1{% else %}0.5{% endif %};">🇺🇸</a>
+          <!-- SELETOR DE IDIOMAS (Seguro para o layout) -->
+          <li class="masthead__menu-item persist" style="display: inline-block; padding-left: 10px; padding-right: 5px;">
+            <a href="{{ base_path }}/" style="display: inline; padding: 0 3px; text-decoration: none; opacity: {% if page.url contains '/en/' %}0.4{% else %}1{% endif %};">🇧🇷</a>
+            <a href="{{ base_path }}/en/" style="display: inline; padding: 0 3px; text-decoration: none; opacity: {% if page.url contains '/en/' %}1{% else %}0.4{% endif %};">🇺🇸</a>
           </li>
 
-          <!-- Ícone de Alternar Tema (Claro/Escuro) -->
-          <li id="theme-toggle" class="masthead__menu-item persist tail">
-            <a role="button" aria-labelledby="theme-icon"><i id="theme-icon" class="fa-solid fa-sun" aria-hidden="true" title="toggle theme"></i></a>
-          </li>
-        </ul>
-        <ul class="hidden-links hidden"></ul>
-      </nav>
-    </div>
-  </div>
-</div>
-{% include base_path %}
-<div class="masthead">
-  <div class="masthead__inner-wrap">
-    <div class="masthead__menu">
-      <nav id="site-nav" class="greedy-nav">
-        <button><span class="navicon"></span></button>
-        <ul class="visible-links">
-          
-          <!-- Botão Inicial (Título do Site) que muda o link se estiver em inglês -->
-          <li class="masthead__menu-item masthead__menu-item--lg persist {% if page.url == '/' or page.url == '/en/' %}selected{% endif %}">
-            {% if page.url contains '/en/' %}
-              <a href="{{ base_path }}/en/">{{ site.title }}</a>
-            {% else %}
-              <a href="{{ base_path }}/">{{ site.title }}</a>
-            {% endif %}
-          </li>
-
-          <!-- Renderização Condicional dos Menus com base na URL da página -->
-          {% if page.url contains '/en/' %}
-            {% for link in site.data.navigation.main_en %}
-              {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
-              <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/en/' %}selected{% endif %}">
-                <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
-              </li>
-            {% endfor %}
-          {% else %}
-            {% for link in site.data.navigation.main %}
-              {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
-              <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/' %}selected{% endif %}">
-                <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
-              </li>
-            {% endfor %}
-          {% endif %}
-
-          <!-- Ícone de Alternar Tema (Claro/Escuro) mantido intacto no final -->
+          <!-- Modo Escuro -->
           <li id="theme-toggle" class="masthead__menu-item persist tail">
             <a role="button" aria-labelledby="theme-icon"><i id="theme-icon" class="fa-solid fa-sun" aria-hidden="true" title="toggle theme"></i></a>
           </li>
