@@ -21,15 +21,18 @@ main:
     url: /portfolio/
   - title: "CV"
     url: /cv/
-  - title: "🇺🇸 English"
-    url: /en/
 
-# Menu que aparecerá quando o usuário clicar na versão em Inglês
+# Menu Principal em Inglês
 main_en:
   - title: "Home"
     url: /en/
   - title: "Publications"
     url: /en/publications/
-  - title: "🇧🇷 Português"
-    url: /
-
+  - title: "Talks"
+    url: /en/talks/
+  - title: "Teaching"
+    url: /en/teaching/
+  - title: "Curiosities"
+    url: /en/portfolio/
+  - title: "CV"
+    url: /en/cv/
