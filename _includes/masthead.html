@@ -6,6 +6,59 @@
 
       <nav id="site-nav" class="greedy-nav">
 
+        <button>
+          <span class="navicon"></span>
+        </button>
+
+        <ul class="visible-links">
+
+          {% for link in site.data.navigation.main %}
+            {% if link.url contains 'http' %}
+              {% assign domain = '' %}
+            {% else %}
+              {% assign domain = base_path %}
+            {% endif %}
+
+            <li class="masthead__menu-item">
+              <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
+            </li>
+          {% endfor %}
+
+          <li class="masthead__menu-item persist language-selector">
+            <a href="{{ base_path }}/"
+               aria-label="Português"
+               title="Português">
+              🇧🇷
+            </a>
+          </li>
+
+          <li id="theme-toggle" class="masthead__menu-item persist tail">
+            <a role="button"
+               aria-labelledby="theme-icon"
+               title="Alternar tema">
+              <i id="theme-icon"
+                 class="fa-solid fa-sun"
+                 aria-hidden="true">
+              </i>
+            </a>
+          </li>
+
+        </ul>
+
+        <ul class="hidden-links hidden"></ul>
+
+      </nav>
+
+    </div>
+  </div>
+</div>{% include base_path %}
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+
+      <nav id="site-nav" class="greedy-nav">
+
         <!-- Botão do menu mobile -->
         <button>
           <span class="navicon"></span>
