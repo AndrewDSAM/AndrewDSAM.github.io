@@ -37,3 +37,40 @@
     "layout/sidebar",
     "layout/json_cv"
 ;
+/* ==========================================================================
+   Customizações da Barra Superior (Masthead)
+   ========================================================================== */
+
+@media (min-width: 64em) {
+  /* 1. Alinha a barra de navegação principal de ponta a ponta */
+  .masthead__inner {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  /* 2. Centraliza os links principais (Publicações, Talks, Aulas, etc) */
+  .masthead__menu-links {
+    display: flex !important;
+    justify-content: center !important;
+    flex-grow: 1 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+  }
+
+  /* 3. Empurra o botão de alternar tema (Greedy Nav Button / Search / Toggle) para o canto direito */
+  .masthead__menu .greedy-nav {
+    display: flex !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  /* Força qualquer botão de ação ou alternância de tema a se fixar na extremidade direita */
+  .greedy-nav button, 
+  .greedy-nav .search-toggle {
+    margin-left: auto !important;
+  }
+}
