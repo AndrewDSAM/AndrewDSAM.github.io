@@ -37,48 +37,35 @@
     "layout/sidebar",
     "layout/json_cv"
 ;
-/* Alinhamento do menu com a foto de perfil e botão no canto direito */
+/* Menu superior: manter todos os itens na mesma linha */
 @media (min-width: 64em) {
-  /* Alinha o container principal de navegação */
   .masthead__menu .greedy-nav {
-    position: relative !important;
     display: flex !important;
-    justify-content: flex-start !important; /* Começa alinhado à esquerda */
     align-items: center !important;
     width: 100% !important;
   }
 
-  /* Remove margens extras e força os links a começarem exatamente no início do grid */
   .masthead__menu .greedy-nav .visible-links {
     display: flex !important;
-    justify-content: flex-start !important;
-    float: none !important;
-    margin: 0 !important; /* Garante o alinhamento com a borda da foto */
-    padding-left: 0 !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Garante o espaçamento uniforme entre os itens que chegam para o lado */
   .masthead__menu .greedy-nav .visible-links li {
-    margin-right: 2rem !important; /* Ajuste o espaço entre os links aqui */
+    margin-right: 0 !important;
   }
 
-  /* Força o botão de alternar tema/toggle a ir para a extremidade direita */
-  .masthead__menu .greedy-nav button,
-  .masthead__menu .greedy-nav .greedy-nav__toggle,
-  .masthead__menu .search-toggle {
-    position: absolute !important;
+  .masthead__menu .greedy-nav .visible-links li a {
+    margin-left: 0.35rem !important;
+    margin-right: 0.35rem !important;
+    padding-left: 0.1rem !important;
+    padding-right: 0.1rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .masthead__menu .greedy-nav button {
     right: 0 !important;
-    margin-left: auto !important;
-  }
-}
-/* Reduz o espaço entre os botões do menu para caber tudo no topo */
-@media (min-width: 64em) {
-  .masthead__menu .visible-links li {
-    margin-right: 1rem !important; /* Diminui o espaço padrão entre os links */
-  }
-  .masthead__menu-links li a {
-    padding-right: 5px !important;
-    padding-left: 5px !important;
-    font-size: 0.95rem !important; /* Diminui sutilmente o tamanho da fonte se necessário */
   }
 }
