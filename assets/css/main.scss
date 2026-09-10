@@ -38,51 +38,60 @@
     "layout/json_cv"
 ;
 /* ==============================
-   AJUSTE DO MENU SUPERIOR
+   MENU SUPERIOR — DESKTOP
    ============================== */
 
 @media (min-width: 769px) {
 
   .greedy-nav {
-    display: flex;
+    display: flex !important;
     align-items: center;
     width: 100%;
+    min-width: 0;
   }
 
   .greedy-nav .visible-links {
-    display: flex;
+    display: flex !important;
     align-items: center;
     width: 100%;
-    justify-content: flex-end;
+    justify-content: flex-start !important;
   }
 
-  /* Todos os itens do menu */
+  /* Todos os links principais ficam na ordem normal */
   .greedy-nav .visible-links > li {
+    order: 1;
     flex: 0 0 auto;
   }
 
-  /* Espaçamento normal entre os itens */
-  .greedy-nav .visible-links > li a {
+  /* Espaçamento dos links */
+  .greedy-nav .visible-links > li > a {
     margin-left: 0.7rem;
     margin-right: 0.7rem;
   }
 
-  /* Página Principal junto dos demais itens */
-  .greedy-nav .masthead__menu-item--lg {
+  /* Bandeira vai para o FINAL */
+  .greedy-nav .visible-links > li.language-selector {
+    order: 10;
+    margin-left: auto !important;
+  }
+
+  /* Lua/sol fica depois da bandeira */
+  .greedy-nav .visible-links > li.tail {
+    order: 11;
+    margin-left: 0 !important;
+  }
+
+  .greedy-nav .visible-links > li.tail > a {
     margin-right: 0;
   }
 
-  /* Bandeira e tema ficam depois do CV */
-  .greedy-nav .language-selector {
-    margin-left: 1.5rem;
-  }
-
-  .greedy-nav .tail {
-    margin-left: 0;
-  }
-
-  /* Não deixar o JS esconder os itens no desktop */
+  /* Não mostrar o menu lateral no desktop */
   .greedy-nav .hidden-links {
+    display: none !important;
+  }
+
+  /* Esconde o botão hambúrguer no desktop */
+  .greedy-nav > button {
     display: none !important;
   }
 }
