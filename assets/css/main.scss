@@ -37,35 +37,52 @@
     "layout/sidebar",
     "layout/json_cv"
 ;
-/* Menu superior: manter todos os itens na mesma linha */
-@media (min-width: 64em) {
-  .masthead__menu .greedy-nav {
-    display: flex !important;
-    align-items: center !important;
-    width: 100% !important;
+/* ==============================
+   AJUSTE DO MENU SUPERIOR
+   ============================== */
+
+@media (min-width: 769px) {
+
+  .greedy-nav {
+    display: flex;
+    align-items: center;
+    width: 100%;
   }
 
-  .masthead__menu .greedy-nav .visible-links {
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-    margin: 0 !important;
-    padding: 0 !important;
+  .greedy-nav .visible-links {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-end;
   }
 
-  .masthead__menu .greedy-nav .visible-links li {
-    margin-right: 0 !important;
+  /* Todos os itens do menu */
+  .greedy-nav .visible-links > li {
+    flex: 0 0 auto;
   }
 
-  .masthead__menu .greedy-nav .visible-links li a {
-    margin-left: 0.35rem !important;
-    margin-right: 0.35rem !important;
-    padding-left: 0.1rem !important;
-    padding-right: 0.1rem !important;
-    font-size: 0.88rem !important;
+  /* Espaçamento normal entre os itens */
+  .greedy-nav .visible-links > li a {
+    margin-left: 0.7rem;
+    margin-right: 0.7rem;
   }
 
-  .masthead__menu .greedy-nav button {
-    right: 0 !important;
+  /* Página Principal junto dos demais itens */
+  .greedy-nav .masthead__menu-item--lg {
+    margin-right: 0;
+  }
+
+  /* Bandeira e tema ficam depois do CV */
+  .greedy-nav .language-selector {
+    margin-left: 1.5rem;
+  }
+
+  .greedy-nav .tail {
+    margin-left: 0;
+  }
+
+  /* Não deixar o JS esconder os itens no desktop */
+  .greedy-nav .hidden-links {
+    display: none !important;
   }
 }
