@@ -1,51 +1,66 @@
 {% include base_path %}
+
 <div class="masthead">
   <div class="masthead__inner-wrap">
     <div class="masthead__menu">
+
       <nav id="site-nav" class="greedy-nav">
-        <button><span class="navicon"></span></button>
+
+        <!-- Botão do menu mobile -->
+        <button>
+          <span class="navicon"></span>
+        </button>
+
         <ul class="visible-links">
-          
-          <!-- Nome do Site (Home) -->
-          <li class="masthead__menu-item masthead__menu-item--lg persist {% if page.url == '/' or page.url == '/en/' %}selected{% endif %}">
-            {% if page.url contains '/en/' %}
-              <a href="{{ base_path }}/en/">{{ site.title }}</a>
+
+          <!-- Página Principal -->
+          <li class="masthead__menu-item masthead__menu-item--lg persist {% if page.url == '/' %}selected{% endif %}">
+            <a href="{{ base_path }}/">Página Principal</a>
+          </li>
+
+          <!-- Menu Principal -->
+          {% for link in site.data.navigation.main %}
+            {% if link.url contains 'http' %}
+              {% assign domain = '' %}
             {% else %}
-              <a href="{{ base_path }}/">{{ site.title }}</a>
+              {% assign domain = base_path %}
             {% endif %}
-          </li>
 
-          <!-- LINKS EM INGLÊS -->
-          {% if page.url contains '/en/' %}
-            {% for link in site.data.navigation.main_en %}
-              {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
-              <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/en/' %}selected{% endif %}">
+            {% unless link.url == '/' %}
+              <li class="masthead__menu-item {% if page.url contains link.url %}selected{% endif %}">
                 <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
               </li>
-            {% endfor %}
-          {% else %}
-          <!-- LINKS EM PORTUGUÊS -->
-            {% for link in site.data.navigation.main %}
-              {% if link.url contains 'http' %}{% assign domain = '' %}{% else %}{% assign domain = base_path %}{% endif %}
-              <li class="masthead__menu-item {% if page.url contains link.url and link.url != '/' %}selected{% endif %}">
-                <a href="{{ domain }}{{ link.url }}">{{ link.title }}</a>
-              </li>
-            {% endfor %}
-          {% endif %}
+            {% endunless %}
+          {% endfor %}
 
-          <!-- SELETOR DE IDIOMAS (Seguro para o layout) -->
-          <li class="masthead__menu-item persist" style="display: inline-block; padding-left: 10px; padding-right: 5px;">
-            <a href="{{ base_path }}/" style="display: inline; padding: 0 3px; text-decoration: none; opacity: {% if page.url contains '/en/' %}0.4{% else %}1{% endif %};">🇧🇷</a>
-            <a href="{{ base_path }}/en/" style="display: inline; padding: 0 3px; text-decoration: none; opacity: {% if page.url contains '/en/' %}1{% else %}0.4{% endif %};">🇺🇸</a>
+          <!-- Bandeira do Brasil -->
+          <li class="masthead__menu-item persist language-selector">
+            <a href="{{ base_path }}/"
+               aria-label="Português"
+               title="Português">
+              🇧🇷
+            </a>
           </li>
 
-          <!-- Modo Escuro -->
+          <!-- Modo claro/escuro -->
           <li id="theme-toggle" class="masthead__menu-item persist tail">
-            <a role="button" aria-labelledby="theme-icon"><i id="theme-icon" class="fa-solid fa-sun" aria-hidden="true" title="toggle theme"></i></a>
+            <a role="button"
+               aria-labelledby="theme-icon"
+               title="Alternar tema">
+              <i id="theme-icon"
+                 class="fa-solid fa-sun"
+                 aria-hidden="true">
+              </i>
+            </a>
           </li>
+
         </ul>
+
+        <!-- Menu lateral usado apenas no mobile -->
         <ul class="hidden-links hidden"></ul>
+
       </nav>
+
     </div>
   </div>
 </div>
