@@ -1,7 +1,7 @@
 ---
 title: "Trabalho de Conclusão de Curso - Licenciatura em Física"
 collection: publications
-category: "Trabalho de Conclusão de Curso"
+category: "tcc"
 permalink: /publication/2025-10-24-TCC
 excerpt: "Esse foi o meu trabalho de conclusão para a obtenção do grau de licenciado em física."
 date: 2025-10-24
