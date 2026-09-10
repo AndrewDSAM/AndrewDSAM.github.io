@@ -37,40 +37,32 @@
     "layout/sidebar",
     "layout/json_cv"
 ;
-/* ==========================================================================
-   Customizações da Barra Superior (Masthead)
-   ========================================================================== */
-
+/* Centralização exata do menu e alinhamento do botão no canto */
 @media (min-width: 64em) {
-  /* 1. Alinha a barra de navegação principal de ponta a ponta */
-  .masthead__inner {
+  .masthead__menu .greedy-nav {
+    position: relative !important;
     display: flex !important;
-    justify-content: space-between !important;
+    justify-content: center !important; /* Centraliza o conteúdo geral da nav */
     align-items: center !important;
-    width: 100% !important;
   }
 
-  /* 2. Centraliza os links principais (Publicações, Talks, Aulas, etc) */
-  .masthead__menu-links {
+  /* Centraliza a lista de links visíveis */
+  .masthead__menu .greedy-nav .visible-links {
+    position: relative !important;
+    margin: 0 auto !important;
     display: flex !important;
     justify-content: center !important;
-    flex-grow: 1 !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    text-align: center !important;
+    float: none !important;
   }
 
-  /* 3. Empurra o botão de alternar tema (Greedy Nav Button / Search / Toggle) para o canto direito */
-  .masthead__menu .greedy-nav {
-    display: flex !important;
-    width: 100% !important;
-    justify-content: space-between !important;
-    align-items: center !important;
+  /* Posiciona o botão escondido/menu colapsado ou de alternância estritamente na direita */
+  .masthead__menu .greedy-nav .hidden-links {
+    right: 0 !important;
+    left: auto !important;
   }
-
-  /* Força qualquer botão de ação ou alternância de tema a se fixar na extremidade direita */
-  .greedy-nav button, 
-  .greedy-nav .search-toggle {
-    margin-left: auto !important;
+  
+  .masthead__menu .greedy-nav .greedy-nav__toggle {
+    position: absolute !important;
+    right: 0 !important;
   }
 }
