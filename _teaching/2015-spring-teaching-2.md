@@ -32,7 +32,7 @@ Curso abrangendo todas as frentes da Física 1 do Ensino Médio para a preparaç
 * Dinâmica do Movimento Circular: Força resultante centrípeta ($F_c = \frac{mv^2}{R}$).
 * Aplicações de Dinâmica: Planos inclinados, sistemas de blocos, elevadores e curvas com atrito.
 
-## 3. Trabalho, Energia e Potência (O tema mais cobrado do ENEM)
+## 3. Trabalho, Energia e Potência 
 
 * Trabalho de uma Força: Trabalho de forças constantes, força peso e forças variáveis (área do gráfico $F \times d$).
 * Energia Mecânica:
@@ -52,7 +52,7 @@ Curso abrangendo todas as frentes da Física 1 do Ensino Médio para a preparaç
    * Princípio de Pascal: Prensa hidráulica e transmissão de pressão em fluidos.
    * Princípio de Arquimedes: Força de Empuxo ($E = d_{fluido} \cdot V_{sub} \cdot g$) e condições de flutuação de corpos.
 
-## 5. Gravitação Universal (Conexão com o seu TCC)
+## 5. Gravitação Universal 
 
 * Leis de Kepler: Lei das Órbitas, Lei das Áreas e Lei dos Períodos ($T^2 = k \cdot R^3$).
 * Lei da Gravitação Universal de Newton: Força de atração gravitacional ($F = \frac{G \cdot M \cdot m}{d^2}$).
