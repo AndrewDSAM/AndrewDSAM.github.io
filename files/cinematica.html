@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cinemática — Painel de Aula</title>
+<style>
+  :root{
+    --bg:#080b0d;
+    --bg-panel:#0f1418;
+    --bg-panel-2:#141a1f;
+    --grid:#1c252c;
+    --border:#212b32;
+    --green:#4ce6a2;
+    --green-dim:#2c8562;
+    --green-glow:rgba(76,230,162,.45);
+    --amber:#ffb454;
+    --amber-dim:#8a6530;
+    --red:#ff7a7a;
+    --blue:#6fb8ff;
+    --text:#e8eef2;
+    --text-dim:#8695a3;
+    --text-faint:#4f5c68;
+    --font-display: 'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono','Cascadia Mono','JetBrains Mono', Consolas, 'Courier New', monospace;
+    --font-body: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    overflow:hidden;
+  }
+  body{
+    background-image:
+      radial-gradient(ellipse at 15% 0%, rgba(76,230,162,.05), transparent 55%),
+      radial-gradient(ellipse at 85% 100%, rgba(255,180,84,.04), transparent 55%);
+  }
+  /* subtle scanline / CRT texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.012) 0px,
+      rgba(255,255,255,0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    z-index:50;
+    mix-blend-mode:overlay;
+  }
+
+  #app{
+    display:flex; flex-direction:column;
+    height:100vh; width:100vw;
+    padding:16px 22px 18px;
+  }
+
+  /* ===== HEADER / TABS ===== */
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    padding-bottom:12px; margin-bottom:14px;
+    flex-shrink:0;
+  }
+  .brand{
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .brand .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px; letter-spacing:.28em; text-transform:uppercase;
+    color:var(--green); opacity:.85;
+  }
+  .brand h1{
+    margin:0; font-family:var(--font-display);
+    font-weight:800; font-size:26px; letter-spacing:-0.01em;
+    color:var(--text);
+  }
+  nav.tabs{
+    display:flex; gap:8px;
+  }
+  .tab{
+    font-family:var(--font-mono);
+    font-size:13px; letter-spacing:.06em;
+    color:var(--text-dim);
+    background:var(--bg-panel);
+    border:1px solid var(--border);
+    padding:10px 16px 8px;
+    border-radius:6px 6px 0 0;
+    cursor:pointer;
+    position:relative;
+    display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+    min-width:118px;
+  }
+  .tab .ch{
+    font-size:9px; color:var(--text-faint); letter-spacing:.14em;
+  }
+  .tab:hover{ color:var(--text); border-color:#2c3944; }
+  .tab.active{
+    color:var(--green);
+    background:var(--bg-panel-2);
+    border-color:var(--green-dim);
+    box-shadow: 0 -2px 14px -4px var(--green-glow) inset;
+  }
+  .tab.active .ch{ color:var(--green-dim); }
+  .tab .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--text-faint);
+    position:absolute; top:9px; right:10px;
+  }
+  .tab.active .dot{ background:var(--green); box-shadow:0 0 6px 1px var(--green-glow); }
+
+  /* ===== MAIN LAYOUT ===== */
+  main{
+    flex:1; min-height:0;
+    display:grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap:14px;
+  }
+  .panel{
+    display:none;
+    min-height:0;
+    grid-column:1 / -1;
+    grid-template-columns: 1.5fr 1fr;
+    gap:14px;
+    height:100%;
+  }
+  .panel.active{ display:grid; }
+
+  .card{
+    background:var(--bg-panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    display:flex; flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  .card-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    background:var(--bg-panel-2);
+    flex-shrink:0;
+  }
+  .card-head h2{
+    margin:0; font-family:var(--font-display); font-weight:700;
+    font-size:14px; letter-spacing:.02em; color:var(--text);
+  }
+  .card-head .tag{
+    font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint);
+    letter-spacing:.1em; text-transform:uppercase;
+  }
+
+  /* left column: simulation */
+  .sim-col{ display:flex; flex-direction:column; gap:14px; min-height:0; }
+  .sim-card{ flex:1; min-height:0; }
+  .sim-canvas-wrap{ flex:1; position:relative; min-height:0; }
+  canvas{ display:block; width:100%; height:100%; }
+
+  .controls{
+    display:flex; align-items:center; gap:18px;
+    padding:10px 14px; border-top:1px solid var(--border);
+    background:var(--bg-panel-2); flex-shrink:0; flex-wrap:wrap;
+  }
+  .btn{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.05em;
+    background:transparent; border:1px solid var(--border); color:var(--text);
+    padding:7px 12px; border-radius:5px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    transition:border-color .15s, color .15s;
+  }
+  .btn:hover{ border-color:var(--green-dim); color:var(--green); }
+  .slider-group{ display:flex; align-items:center; gap:8px; }
+  .slider-group label{
+    font-family:var(--font-mono); font-size:11px; color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .slider-group .val{ color:var(--amber); min-width:52px; display:inline-block; }
+  input[type=range]{
+    -webkit-appearance:none; width:110px; height:3px; background:var(--border);
+    border-radius:2px; outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:13px; height:13px; border-radius:50%;
+    background:var(--green); cursor:pointer; box-shadow:0 0 6px var(--green-glow);
+    border:2px solid #0a0d0f;
+  }
+  .toggle-group{ display:flex; gap:4px; }
+  .toggle-btn{
+    font-family:var(--font-mono); font-size:11px; padding:6px 10px;
+    border-radius:5px; border:1px solid var(--border); background:transparent;
+    color:var(--text-dim); cursor:pointer;
+  }
+  .toggle-btn.active{ color:var(--amber); border-color:var(--amber-dim); }
+
+  /* right column: formulas + graphs */
+  .info-col{ display:flex; flex-direction:column; gap:14px; min-height:0; }
+  .formula-card{ flex-shrink:0; }
+  .formula-body{ padding:14px; display:flex; flex-direction:column; gap:10px; overflow:auto; }
+  .formula{
+    font-family:var(--font-mono); font-size:16px; color:var(--green);
+    background:rgba(76,230,162,.06); border:1px solid var(--green-dim);
+    border-radius:6px; padding:9px 12px; letter-spacing:.01em;
+  }
+  .formula .label{ color:var(--text-faint); font-size:10px; letter-spacing:.1em; display:block; margin-bottom:3px; text-transform:uppercase; }
+  .note{ font-size:12.5px; color:var(--text-dim); line-height:1.5; padding:0 2px; }
+  .note b{ color:var(--text); }
+
+  .readout-row{ display:flex; gap:8px; flex-wrap:wrap; padding:0 2px; }
+  .readout{
+    font-family:var(--font-mono); font-size:12px; color:var(--text-dim);
+    background:var(--bg-panel-2); border:1px solid var(--border);
+    border-radius:5px; padding:6px 10px; flex:1; min-width:78px;
+  }
+  .readout .k{ color:var(--text-faint); font-size:10px; display:block; letter-spacing:.08em; }
+  .readout .v{ color:var(--amber); font-size:14px; }
+
+  .graph-card{ flex:1; min-height:0; display:flex; flex-direction:column; }
+  .graph-wrap{ flex:1; min-height:0; display:flex; flex-direction:column; }
+  .graph-wrap canvas{ flex:1; }
+  .graph-split{ flex:1; display:flex; flex-direction:column; min-height:0; }
+  .graph-split canvas{ flex:1; border-bottom:1px solid var(--border); }
+  .graph-split canvas:last-child{ border-bottom:none; }
+
+  footer{
+    flex-shrink:0; padding-top:8px;
+    font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint);
+    letter-spacing:.08em; text-align:center;
+  }
+
+  @media (max-width: 900px){
+    .panel{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">
+      <span class="eyebrow">Física · Cinemática</span>
+      <h1>Painel de Aula</h1>
+    </div>
+    <nav class="tabs" id="tabs">
+      <div class="tab active" data-topic="mru"><span class="ch">CH.1</span>MRU<span class="dot"></span></div>
+      <div class="tab" data-topic="mruv"><span class="ch">CH.2</span>MRUV<span class="dot"></span></div>
+      <div class="tab" data-topic="lanc"><span class="ch">CH.3</span>LANÇAMENTOS<span class="dot"></span></div>
+      <div class="tab" data-topic="mcu"><span class="ch">CH.4</span>MCU<span class="dot"></span></div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============ MRU ============ -->
+    <section class="panel active" data-panel="mru">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Movimento Retilíneo Uniforme</h2><span class="tag">v = constante · a = 0</span></div>
+          <div class="sim-canvas-wrap"><canvas id="mru-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="mru-play">⏸ Pausar</button>
+            <button class="btn" id="mru-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>v₀ <span class="val" id="mru-v-val">4.0 m/s</span></label>
+              <input type="range" id="mru-v" min="-8" max="8" step="0.5" value="4">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Equação horária</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Posição</span>S = S₀ + v·t</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">S₀</span><span class="v" id="mru-s0">0 m</span></div>
+              <div class="readout"><span class="k">v</span><span class="v" id="mru-vread">4.0 m/s</span></div>
+              <div class="readout"><span class="k">t</span><span class="v" id="mru-t">0.0 s</span></div>
+              <div class="readout"><span class="k">S(t)</span><span class="v" id="mru-s">0.0 m</span></div>
+            </div>
+            <p class="note">Velocidade <b>constante</b>: o gráfico v×t é uma reta horizontal e a <b>área sob a reta</b> é o deslocamento. O gráfico S×t é uma reta cuja inclinação é a própria velocidade.</p>
+          </div>
+        </div>
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráficos</h2><span class="tag">v×t · S×t</span></div>
+          <div class="graph-split">
+            <canvas id="mru-graph-v"></canvas>
+            <canvas id="mru-graph-s"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MRUV ============ -->
+    <section class="panel" data-panel="mruv">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Movimento Retilíneo Uniformemente Variado</h2><span class="tag">a = constante ≠ 0</span></div>
+          <div class="sim-canvas-wrap"><canvas id="mruv-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="mruv-play">⏸ Pausar</button>
+            <button class="btn" id="mruv-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>v₀ <span class="val" id="mruv-v0-val">1.0 m/s</span></label>
+              <input type="range" id="mruv-v0" min="-6" max="6" step="0.5" value="1">
+            </div>
+            <div class="slider-group">
+              <label>a <span class="val" id="mruv-a-val">1.5 m/s²</span></label>
+              <input type="range" id="mruv-a" min="-3" max="3" step="0.25" value="1.5">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Equações horárias</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Velocidade</span>v = v₀ + a·t</div>
+            <div class="formula"><span class="label">Posição</span>S = S₀ + v₀·t + a·t²/2</div>
+            <div class="formula"><span class="label">Torricelli</span>v² = v₀² + 2·a·ΔS</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">t</span><span class="v" id="mruv-t">0.0 s</span></div>
+              <div class="readout"><span class="k">v(t)</span><span class="v" id="mruv-vread">0.0 m/s</span></div>
+              <div class="readout"><span class="k">S(t)</span><span class="v" id="mruv-s">0.0 m</span></div>
+            </div>
+            <p class="note">Aceleração <b>constante</b>: o gráfico v×t é uma reta inclinada (a = declividade) e o gráfico S×t é uma <b>parábola</b>.</p>
+          </div>
+        </div>
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráficos</h2><span class="tag">v×t · S×t</span></div>
+          <div class="graph-split">
+            <canvas id="mruv-graph-v"></canvas>
+            <canvas id="mruv-graph-s"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LANÇAMENTOS ============ -->
+    <section class="panel" data-panel="lanc">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head">
+            <h2>Lançamento de Projéteis</h2>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="lanc-horiz">Horizontal</button>
+              <button class="toggle-btn" id="lanc-obliq">Oblíquo</button>
+            </div>
+          </div>
+          <div class="sim-canvas-wrap"><canvas id="lanc-canvas"></canvas></div>
+          <div class="controls" id="lanc-controls-horiz">
+            <button class="btn" id="lanc-play">⏸ Pausar</button>
+            <button class="btn" id="lanc-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>h <span class="val" id="lanc-h-val">45 m</span></label>
+              <input type="range" id="lanc-h" min="15" max="80" step="5" value="45">
+            </div>
+            <div class="slider-group">
+              <label>v₀ <span class="val" id="lanc-v0h-val">12 m/s</span></label>
+              <input type="range" id="lanc-v0h" min="4" max="24" step="1" value="12">
+            </div>
+          </div>
+          <div class="controls" id="lanc-controls-obliq" style="display:none;">
+            <button class="btn" id="lanc-play2">⏸ Pausar</button>
+            <button class="btn" id="lanc-reset2">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>v₀ <span class="val" id="lanc-v0-val">22 m/s</span></label>
+              <input type="range" id="lanc-v0" min="10" max="32" step="1" value="22">
+            </div>
+            <div class="slider-group">
+              <label>θ <span class="val" id="lanc-ang-val">45°</span></label>
+              <input type="range" id="lanc-ang" min="10" max="80" step="1" value="45">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Decomposição</h2><span class="tag">g = 10 m/s²</span></div>
+          <div class="formula-body" id="lanc-formula-body">
+            <!-- filled dynamically -->
+          </div>
+        </div>
+        <div class="card graph-card">
+          <div class="card-head"><h2>Trajetória</h2><span class="tag">y × x</span></div>
+          <div class="graph-wrap"><canvas id="lanc-graph"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MCU ============ -->
+    <section class="panel" data-panel="mcu">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Movimento Circular Uniforme</h2><span class="tag">|v| = constante · direção varia</span></div>
+          <div class="sim-canvas-wrap"><canvas id="mcu-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="mcu-play">⏸ Pausar</button>
+            <button class="btn" id="mcu-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>T <span class="val" id="mcu-T-val">3.0 s</span></label>
+              <input type="range" id="mcu-T" min="1" max="8" step="0.5" value="3">
+            </div>
+            <div class="slider-group">
+              <label>R <span class="val" id="mcu-R-val">2.0 m</span></label>
+              <input type="range" id="mcu-R" min="1" max="4" step="0.25" value="2">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Grandezas</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Velocidade angular</span>ω = 2π / T</div>
+            <div class="formula"><span class="label">Velocidade linear</span>v = ω·R</div>
+            <div class="formula"><span class="label">Aceleração centrípeta</span>a꜀ = v² / R = ω²·R</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">T</span><span class="v" id="mcu-Tread">3.0 s</span></div>
+              <div class="readout"><span class="k">f</span><span class="v" id="mcu-f">0.33 Hz</span></div>
+              <div class="readout"><span class="k">ω</span><span class="v" id="mcu-w">2.09 rad/s</span></div>
+              <div class="readout"><span class="k">v</span><span class="v" id="mcu-v">4.19 m/s</span></div>
+              <div class="readout"><span class="k">a꜀</span><span class="v" id="mcu-ac">8.77 m/s²</span></div>
+            </div>
+            <p class="note">O vetor <b style="color:var(--blue)">velocidade</b> é sempre tangente à trajetória; o vetor <b style="color:var(--red)">aceleração centrípeta</b> aponta sempre para o centro.</p>
+          </div>
+        </div>
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag">θ (rad) × t</span></div>
+          <div class="graph-wrap"><canvas id="mcu-graph"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>ESPAÇO · TAB para alternar canais &nbsp;·&nbsp; F11 para tela cheia</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const G = 10; // gravidade m/s^2
+
+  /* ---------- utilities ---------- */
+  function fitCanvas(canvas){
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width * dpr));
+    const h = Math.max(1, Math.round(rect.height * dpr));
+    if(canvas.width !== w || canvas.height !== h){
+      canvas.width = w; canvas.height = h;
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx, w: rect.width, h: rect.height};
+  }
+
+  function drawArrow(ctx, x1,y1,x2,y2, color, width){
+    const headlen = 8;
+    const dx = x2-x1, dy = y2-y1;
+    const angle = Math.atan2(dy,dx);
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineWidth = width||2;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-headlen*Math.cos(angle-Math.PI/6), y2-headlen*Math.sin(angle-Math.PI/6));
+    ctx.lineTo(x2-headlen*Math.cos(angle+Math.PI/6), y2-headlen*Math.sin(angle+Math.PI/6));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function clear(ctx,w,h){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#0b1013';
+    ctx.fillRect(0,0,w,h);
+  }
+
+  function gridBg(ctx,w,h,step){
+    ctx.strokeStyle = '#161e24';
+    ctx.lineWidth = 1;
+    for(let x=0; x<w; x+=step){ ctx.beginPath(); ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,h); ctx.stroke(); }
+    for(let y=0; y<h; y+=step){ ctx.beginPath(); ctx.moveTo(0,y+.5); ctx.lineTo(w,y+.5); ctx.stroke(); }
+  }
+
+  // simple axes+line plotter. data: array of {x,y} in data space. Maps to canvas with padding.
+  function plot(ctx,w,h,{xmin,xmax,ymin,ymax,points,color,xlabel,ylabel,fill}){
+    clear(ctx,w,h);
+    const padL=34, padR=10, padT=10, padB=20;
+    const pw = w-padL-padR, ph = h-padT-padB;
+    gridBg(ctx,w,h,Math.max(20, pw/8));
+    function mapX(x){ return padL + (x-xmin)/(xmax-xmin||1) * pw; }
+    function mapY(y){ return padT + ph - (y-ymin)/(ymax-ymin||1) * ph; }
+    // axes
+    ctx.strokeStyle = '#2b3742'; ctx.lineWidth=1;
+    const y0 = mapY(Math.max(ymin,Math.min(0,ymax)));
+    ctx.beginPath(); ctx.moveTo(padL,y0); ctx.lineTo(w-padR,y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,h-padB); ctx.stroke();
+    // curve
+    if(points && points.length>1){
+      if(fill){
+        ctx.beginPath();
+        ctx.moveTo(mapX(points[0].x), y0);
+        points.forEach(p=>ctx.lineTo(mapX(p.x), mapY(p.y)));
+        ctx.lineTo(mapX(points[points.length-1].x), y0);
+        ctx.closePath();
+        ctx.fillStyle = color.replace('1)', '.12)');
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.strokeStyle = color; ctx.lineWidth = 2.2;
+      ctx.shadowColor = color; ctx.shadowBlur = 6;
+      points.forEach((p,i)=>{
+        const px = mapX(p.x), py = mapY(Math.max(ymin,Math.min(ymax,p.y)));
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      });
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // current point marker
+      const last = points[points.length-1];
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(mapX(last.x), mapY(Math.max(ymin,Math.min(ymax,last.y))), 3.2, 0, Math.PI*2);
+      ctx.fill();
+    }
+    // labels
+    ctx.fillStyle = '#5b6a76';
+    ctx.font = '10px var(--font-mono)';
+    ctx.textAlign='right';
+    ctx.fillText(ylabel||'', padL-4, padT+9);
+    ctx.textAlign='left';
+    ctx.fillText(xlabel||'', w-padR-24, h-4);
+  }
+
+  /* ---------- tabs ---------- */
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  let activeTopic = 'mru';
+  function setTopic(t){
+    activeTopic = t;
+    tabs.forEach(el=>el.classList.toggle('active', el.dataset.topic===t));
+    panels.forEach(el=>el.classList.toggle('active', el.dataset.panel===t));
+  }
+  tabs.forEach(el=>el.addEventListener('click', ()=>setTopic(el.dataset.topic)));
+  const order = ['mru','mruv','lanc','mcu'];
+  document.addEventListener('keydown', (e)=>{
+    if(e.code==='Tab'){ e.preventDefault(); const i=order.indexOf(activeTopic); setTopic(order[(i+1)%order.length]); }
+    if(e.code==='Space'){
+      e.preventDefault();
+      const btn = document.querySelector('.panel.active .controls .btn');
+      if(btn) btn.click();
+    }
+  });
+
+  /* =========================================================
+     MRU
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('mru-canvas');
+    const gV = document.getElementById('mru-graph-v');
+    const gS = document.getElementById('mru-graph-s');
+    const vSlider = document.getElementById('mru-v');
+    const vVal = document.getElementById('mru-v-val');
+    const playBtn = document.getElementById('mru-play');
+    const resetBtn = document.getElementById('mru-reset');
+    let v = parseFloat(vSlider.value);
+    let t = 0, playing = true;
+    const TMAX = 10;
+    let history = [];
+
+    function trackLen(){ return 60; } // meters visible each side
+
+    function reset(){ t=0; history=[]; }
+    vSlider.addEventListener('input', ()=>{ v=parseFloat(vSlider.value); vVal.textContent=v.toFixed(1)+' m/s'; reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing){ t += dt; if(t>TMAX){ reset(); } }
+      const s = v*t;
+      document.getElementById('mru-t').textContent = t.toFixed(1)+' s';
+      document.getElementById('mru-s').textContent = s.toFixed(1)+' m';
+      document.getElementById('mru-vread').textContent = v.toFixed(1)+' m/s';
+      history.push({x:t, y:s});
+      if(history.length>600) history.shift();
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const midY = h*0.55;
+      // track
+      ctx.strokeStyle = '#26323b'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(20,midY); ctx.lineTo(w-20,midY); ctx.stroke();
+      // ticks
+      const L = trackLen();
+      const px = (val)=> 20 + ( (val + L) / (2*L) ) * (w-40);
+      for(let m=-L; m<=L; m+=10){
+        const x = px(m);
+        ctx.strokeStyle = '#2b3843'; ctx.beginPath(); ctx.moveTo(x,midY-6); ctx.lineTo(x,midY+6); ctx.stroke();
+        if(m%20===0){ ctx.fillStyle='#5b6a76'; ctx.font='10px monospace'; ctx.textAlign='center'; ctx.fillText(m+'m', x, midY+20); }
+      }
+      // origin marker
+      ctx.fillStyle = '#5b6a76';
+      // moving object
+      let pos = s;
+      while(pos>L) pos -= 2*L;
+      while(pos<-L) pos += 2*L;
+      const ox = px(pos);
+      ctx.save();
+      ctx.shadowColor = 'rgba(76,230,162,.7)'; ctx.shadowBlur=14;
+      ctx.fillStyle = '#4ce6a2';
+      ctx.beginPath(); ctx.arc(ox, midY, 9, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+      // velocity vector
+      const vx = ox + Math.sign(v||1)*Math.min(50,Math.abs(v)*8);
+      drawArrow(ctx, ox, midY-22, vx, midY-22, '#ffb454', 2.5);
+      ctx.fillStyle='#ffb454'; ctx.font='11px monospace'; ctx.textAlign='left';
+      ctx.fillText('v', Math.max(ox,vx)+6, midY-18);
+
+      const gvFit = fitCanvas(gV);
+      plot(gvFit.ctx, gvFit.w, gvFit.h, {xmin:0,xmax:TMAX,ymin:-9,ymax:9, points:[{x:0,y:v},{x:t,y:v}], color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'v', fill:false});
+      const gsFit = fitCanvas(gS);
+      plot(gsFit.ctx, gsFit.w, gsFit.h, {xmin:0,xmax:TMAX,ymin:-Math.max(9*TMAX,10),ymax:Math.max(9*TMAX,10), points:history, color:'rgba(255,180,84,1)', xlabel:'t(s)', ylabel:'S', fill:true});
+    }
+    window.__mru_draw = draw;
+  })();
+
+  /* =========================================================
+     MRUV
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('mruv-canvas');
+    const gV = document.getElementById('mruv-graph-v');
+    const gS = document.getElementById('mruv-graph-s');
+    const v0Slider = document.getElementById('mruv-v0');
+    const aSlider = document.getElementById('mruv-a');
+    const v0Val = document.getElementById('mruv-v0-val');
+    const aVal = document.getElementById('mruv-a-val');
+    const playBtn = document.getElementById('mruv-play');
+    const resetBtn = document.getElementById('mruv-reset');
+    let v0=parseFloat(v0Slider.value), a=parseFloat(aSlider.value);
+    let t=0, playing=true;
+    const TMAX = 6;
+    let history=[];
+
+    function reset(){ t=0; history=[]; }
+    v0Slider.addEventListener('input', ()=>{ v0=parseFloat(v0Slider.value); v0Val.textContent=v0.toFixed(1)+' m/s'; reset(); });
+    aSlider.addEventListener('input', ()=>{ a=parseFloat(aSlider.value); aVal.textContent=a.toFixed(2)+' m/s²'; reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing){ t+=dt; if(t>TMAX) reset(); }
+      const v = v0 + a*t;
+      const s = v0*t + 0.5*a*t*t;
+      document.getElementById('mruv-t').textContent = t.toFixed(1)+' s';
+      document.getElementById('mruv-vread').textContent = v.toFixed(1)+' m/s';
+      document.getElementById('mruv-s').textContent = s.toFixed(1)+' m';
+      history.push({x:t,y:s});
+      if(history.length>600) history.shift();
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const midY = h*0.55;
+      ctx.strokeStyle = '#26323b'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(20,midY); ctx.lineTo(w-20,midY); ctx.stroke();
+      // compute smax for scale
+      let smax = 0;
+      for(let tt=0; tt<=TMAX; tt+=0.2){ const ss = v0*tt+0.5*a*tt*tt; if(Math.abs(ss)>smax) smax=Math.abs(ss); }
+      smax = Math.max(smax, 5);
+      const px = (val)=> 20 + ((val+smax)/(2*smax))*(w-40);
+      for(let m=-Math.round(smax); m<=Math.round(smax); m+=Math.max(1,Math.round(smax/5))){
+        const x=px(m);
+        ctx.strokeStyle='#2b3843'; ctx.beginPath(); ctx.moveTo(x,midY-6); ctx.lineTo(x,midY+6); ctx.stroke();
+        ctx.fillStyle='#5b6a76'; ctx.font='10px monospace'; ctx.textAlign='center'; ctx.fillText(m+'m', x, midY+20);
+      }
+      const ox = px(Math.max(-smax,Math.min(smax,s)));
+      ctx.save();
+      ctx.shadowColor='rgba(76,230,162,.7)'; ctx.shadowBlur=14;
+      ctx.fillStyle='#4ce6a2';
+      ctx.beginPath(); ctx.arc(ox,midY,9,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      const vx = ox + Math.sign(v||1)*Math.min(50,Math.abs(v)*6);
+      drawArrow(ctx, ox, midY-22, vx, midY-22, '#ffb454', 2.5);
+      const ax = ox + Math.sign(a||1)*Math.min(40,Math.abs(a)*12);
+      drawArrow(ctx, ox, midY+30, ax, midY+30, '#ff7a7a', 2.5);
+      ctx.font='11px monospace'; ctx.textAlign='left';
+      ctx.fillStyle='#ffb454'; ctx.fillText('v', Math.max(ox,vx)+6, midY-18);
+      ctx.fillStyle='#ff7a7a'; ctx.fillText('a', Math.max(ox,ax)+6, midY+34);
+
+      const gvFit = fitCanvas(gV);
+      const vmax = Math.max(Math.abs(v0+a*TMAX), Math.abs(v0), 3)+1;
+      plot(gvFit.ctx, gvFit.w, gvFit.h, {xmin:0,xmax:TMAX,ymin:-vmax,ymax:vmax, points:[{x:0,y:v0},{x:t,y:v}], color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'v', fill:false});
+      const gsFit = fitCanvas(gS);
+      plot(gsFit.ctx, gsFit.w, gsFit.h, {xmin:0,xmax:TMAX,ymin:-smax,ymax:smax, points:history, color:'rgba(255,180,84,1)', xlabel:'t(s)', ylabel:'S', fill:true});
+    }
+    window.__mruv_draw = draw;
+  })();
+
+  /* =========================================================
+     LANÇAMENTOS
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('lanc-canvas');
+    const gGraph = document.getElementById('lanc-graph');
+    const btnHoriz = document.getElementById('lanc-horiz');
+    const btnObliq = document.getElementById('lanc-obliq');
+    const ctrlHoriz = document.getElementById('lanc-controls-horiz');
+    const ctrlObliq = document.getElementById('lanc-controls-obliq');
+    const formulaBody = document.getElementById('lanc-formula-body');
+
+    const hSlider = document.getElementById('lanc-h');
+    const v0hSlider = document.getElementById('lanc-v0h');
+    const hVal = document.getElementById('lanc-h-val');
+    const v0hVal = document.getElementById('lanc-v0h-val');
+    const playBtn1 = document.getElementById('lanc-play');
+    const resetBtn1 = document.getElementById('lanc-reset');
+
+    const v0Slider = document.getElementById('lanc-v0');
+    const angSlider = document.getElementById('lanc-ang');
+    const v0Val = document.getElementById('lanc-v0-val');
+    const angVal = document.getElementById('lanc-ang-val');
+    const playBtn2 = document.getElementById('lanc-play2');
+    const resetBtn2 = document.getElementById('lanc-reset2');
+
+    let mode = 'horiz';
+    let h = parseFloat(hSlider.value), v0h = parseFloat(v0hSlider.value);
+    let v0 = parseFloat(v0Slider.value), ang = parseFloat(angSlider.value);
+    let t = 0, playing = true;
+    let history = [];
+
+    function setFormulas(){
+      if(mode==='horiz'){
+        formulaBody.innerHTML = `
+          <div class="formula"><span class="label">Eixo x (MRU)</span>x = v₀·t</div>
+          <div class="formula"><span class="label">Eixo y (queda livre)</span>y = h − g·t²/2</div>
+          <div class="formula"><span class="label">Tempo de queda</span>t = √(2h/g)</div>
+          <div class="readout-row">
+            <div class="readout"><span class="k">t</span><span class="v" id="lanc-t">0.0 s</span></div>
+            <div class="readout"><span class="k">x</span><span class="v" id="lanc-x">0.0 m</span></div>
+            <div class="readout"><span class="k">y</span><span class="v" id="lanc-y">0.0 m</span></div>
+          </div>
+          <p class="note">v<sub>x</sub> permanece <b>constante</b> (MRU); v<sub>y</sub> cresce como em <b>queda livre</b> (MRUV). A trajetória resultante é uma parábola.</p>`;
+      } else {
+        formulaBody.innerHTML = `
+          <div class="formula"><span class="label">Componentes iniciais</span>v₀ₓ = v₀·cosθ &nbsp; v₀ᵧ = v₀·senθ</div>
+          <div class="formula"><span class="label">Alcance</span>A = v₀²·sen(2θ) / g</div>
+          <div class="formula"><span class="label">Altura máxima</span>H = v₀²·sen²θ / (2g)</div>
+          <div class="readout-row">
+            <div class="readout"><span class="k">t</span><span class="v" id="lanc-t">0.0 s</span></div>
+            <div class="readout"><span class="k">Alcance</span><span class="v" id="lanc-A">0.0 m</span></div>
+            <div class="readout"><span class="k">H máx</span><span class="v" id="lanc-H">0.0 m</span></div>
+          </div>
+          <p class="note">v<sub>x</sub> = v₀·cosθ é <b>constante</b> durante todo o voo; v<sub>y</sub> varia como em <b>MRUV</b> (desacelera subindo, acelera descendo).</p>`;
+      }
+    }
+
+    function reset(){ t=0; history=[]; }
+    btnHoriz.addEventListener('click', ()=>{ mode='horiz'; btnHoriz.classList.add('active'); btnObliq.classList.remove('active'); ctrlHoriz.style.display='flex'; ctrlObliq.style.display='none'; setFormulas(); reset(); });
+    btnObliq.addEventListener('click', ()=>{ mode='obliq'; btnObliq.classList.add('active'); btnHoriz.classList.remove('active'); ctrlObliq.style.display='flex'; ctrlHoriz.style.display='none'; setFormulas(); reset(); });
+
+    hSlider.addEventListener('input', ()=>{ h=parseFloat(hSlider.value); hVal.textContent=h+' m'; reset(); });
+    v0hSlider.addEventListener('input', ()=>{ v0h=parseFloat(v0hSlider.value); v0hVal.textContent=v0h+' m/s'; reset(); });
+    v0Slider.addEventListener('input', ()=>{ v0=parseFloat(v0Slider.value); v0Val.textContent=v0+' m/s'; reset(); });
+    angSlider.addEventListener('input', ()=>{ ang=parseFloat(angSlider.value); angVal.textContent=ang+'°'; reset(); });
+
+    [playBtn1,playBtn2].forEach(b=>b.addEventListener('click', ()=>{ playing=!playing; const lbl = playing? '⏸ Pausar':'▶ Continuar'; playBtn1.textContent=lbl; playBtn2.textContent=lbl; }));
+    [resetBtn1,resetBtn2].forEach(b=>b.addEventListener('click', reset));
+
+    setFormulas();
+
+    function draw(dt){
+      let x,y,flightT,xmax,ymax;
+      if(mode==='horiz'){
+        flightT = Math.sqrt(2*h/G);
+        if(playing){ t+=dt; if(t>flightT+0.4) reset(); }
+        const tc = Math.min(t,flightT);
+        x = v0h*tc; y = h - 0.5*G*tc*tc;
+        xmax = v0h*flightT + 5; ymax = h;
+        const tEl=document.getElementById('lanc-t'), xEl=document.getElementById('lanc-x'), yEl=document.getElementById('lanc-y');
+        if(tEl){ tEl.textContent=tc.toFixed(2)+' s'; xEl.textContent=x.toFixed(1)+' m'; yEl.textContent=Math.max(0,y).toFixed(1)+' m'; }
+      } else {
+        const rad = ang*Math.PI/180;
+        const vx0 = v0*Math.cos(rad), vy0 = v0*Math.sin(rad);
+        flightT = 2*vy0/G;
+        if(playing){ t+=dt; if(t>flightT+0.4) reset(); }
+        const tc = Math.min(t,flightT);
+        x = vx0*tc; y = vy0*tc - 0.5*G*tc*tc;
+        xmax = vx0*flightT + 3; ymax = (vy0*vy0)/(2*G) + 3;
+        const A = (v0*v0*Math.sin(2*rad))/G;
+        const H = (v0*v0*Math.sin(rad)*Math.sin(rad))/(2*G);
+        const tEl=document.getElementById('lanc-t'), AEl=document.getElementById('lanc-A'), HEl=document.getElementById('lanc-H');
+        if(tEl){ tEl.textContent=tc.toFixed(2)+' s'; AEl.textContent=A.toFixed(1)+' m'; HEl.textContent=H.toFixed(1)+' m'; }
+      }
+      history.push({x:x,y:Math.max(0,y)});
+      if(t>=flightT) { /* keep last point, but stop growing */ }
+      if(history.length>400) history.shift();
+
+      const {ctx,w,h:hh} = fitCanvas(canvas);
+      clear(ctx,w,hh);
+      gridBg(ctx,w,hh,40);
+      const padL=28,padR=16,padT=16,padB=30;
+      const pw=w-padL-padR, ph=hh-padT-padB;
+      const mapX = (vx)=> padL + (vx/xmax)*pw;
+      const mapY = (vy)=> padT + ph - (vy/ymax)*ph;
+      // ground
+      ctx.strokeStyle='#26323b'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(padL, mapY(0)); ctx.lineTo(w-padR, mapY(0)); ctx.stroke();
+      // trajectory trace
+      if(history.length>1){
+        ctx.beginPath();
+        ctx.strokeStyle='rgba(76,230,162,.55)'; ctx.lineWidth=2;
+        history.forEach((p,i)=>{ const px=mapX(p.x), py=mapY(p.y); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); });
+        ctx.stroke();
+      }
+      // current point
+      const cx = mapX(x), cy = mapY(Math.max(0,y));
+      ctx.save();
+      ctx.shadowColor='rgba(76,230,162,.8)'; ctx.shadowBlur=14;
+      ctx.fillStyle='#4ce6a2';
+      ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      // velocity component vectors
+      let vxNow, vyNow;
+      if(mode==='horiz'){ vxNow=v0h; vyNow = -G*Math.min(t,flightT); }
+      else { const rad=ang*Math.PI/180; vxNow=v0*Math.cos(rad); vyNow = v0*Math.sin(rad)-G*Math.min(t,flightT); }
+      drawArrow(ctx, cx, cy, cx+Math.sign(vxNow||1)*Math.min(40,Math.abs(vxNow)*2.2), cy, '#ffb454', 2);
+      drawArrow(ctx, cx, cy, cx, cy-Math.sign(vyNow||1)*Math.min(40,Math.abs(vyNow)*2.2), '#6fb8ff', 2);
+      ctx.font='10.5px monospace';
+      ctx.fillStyle='#ffb454'; ctx.fillText('vx', cx+42, cy+4);
+      ctx.fillStyle='#6fb8ff'; ctx.fillText('vy', cx+4, cy - Math.sign(vyNow||1)*44);
+
+      // graph panel: y vs x full trajectory (theoretical)
+      const gfit = fitCanvas(gGraph);
+      const pts=[];
+      const steps=40;
+      for(let i=0;i<=steps;i++){
+        const frac=i/steps;
+        const tt = frac*flightT;
+        let xx,yy;
+        if(mode==='horiz'){ xx=v0h*tt; yy=Math.max(0,h-0.5*G*tt*tt); }
+        else { const rad=ang*Math.PI/180; xx=v0*Math.cos(rad)*tt; yy=Math.max(0,v0*Math.sin(rad)*tt-0.5*G*tt*tt); }
+        pts.push({x:xx,y:yy});
+      }
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:0,xmax:xmax,ymin:0,ymax:ymax, points:pts, color:'rgba(111,184,255,1)', xlabel:'x(m)', ylabel:'y', fill:true});
+    }
+    window.__lanc_draw = draw;
+  })();
+
+  /* =========================================================
+     MCU
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('mcu-canvas');
+    const gGraph = document.getElementById('mcu-graph');
+    const TSlider = document.getElementById('mcu-T');
+    const RSlider = document.getElementById('mcu-R');
+    const TVal = document.getElementById('mcu-T-val');
+    const RVal = document.getElementById('mcu-R-val');
+    const playBtn = document.getElementById('mcu-play');
+    const resetBtn = document.getElementById('mcu-reset');
+    let T = parseFloat(TSlider.value), R = parseFloat(RSlider.value);
+    let t=0, playing=true;
+    let history=[];
+
+    function updateReadouts(){
+      const w = 2*Math.PI/T, f = 1/T, v = w*R, ac = w*w*R;
+      document.getElementById('mcu-Tread').textContent = T.toFixed(1)+' s';
+      document.getElementById('mcu-f').textContent = f.toFixed(2)+' Hz';
+      document.getElementById('mcu-w').textContent = w.toFixed(2)+' rad/s';
+      document.getElementById('mcu-v').textContent = v.toFixed(2)+' m/s';
+      document.getElementById('mcu-ac').textContent = ac.toFixed(2)+' m/s²';
+    }
+    function reset(){ t=0; history=[]; }
+    TSlider.addEventListener('input', ()=>{ T=parseFloat(TSlider.value); TVal.textContent=T.toFixed(1)+' s'; updateReadouts(); });
+    RSlider.addEventListener('input', ()=>{ R=parseFloat(RSlider.value); RVal.textContent=R.toFixed(2)+' m'; updateReadouts(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+    updateReadouts();
+
+    function draw(dt){
+      if(playing) t+=dt;
+      const w = 2*Math.PI/T;
+      const theta = w*t;
+      history.push({x:t, y:theta});
+      const tmaxWin = 4*T;
+      if(t>tmaxWin){ history.shift(); }
+      while(history.length && history[0].x < t - tmaxWin) history.shift();
+
+      const {ctx,w:cw,h:ch} = fitCanvas(canvas);
+      clear(ctx,cw,ch);
+      gridBg(ctx,cw,ch,40);
+      const cx = cw/2, cy = ch/2;
+      const scale = Math.min(cw,ch)*0.36 / Math.max(R,1);
+      const rad = R*scale;
+      // orbit circle
+      ctx.strokeStyle='#26323b'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2); ctx.stroke();
+      // center
+      ctx.fillStyle='#3a4a56';
+      ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+      // moving point
+      const px = cx + rad*Math.cos(theta - Math.PI/2);
+      const py = cy + rad*Math.sin(theta - Math.PI/2);
+      // trail
+      ctx.strokeStyle='rgba(76,230,162,.35)'; ctx.lineWidth=2;
+      ctx.beginPath();
+      const trailSteps=28;
+      for(let i=trailSteps;i>=0;i--){
+        const th = theta - i*0.09;
+        const tx = cx+rad*Math.cos(th-Math.PI/2), ty=cy+rad*Math.sin(th-Math.PI/2);
+        if(i===trailSteps) ctx.moveTo(tx,ty); else ctx.lineTo(tx,ty);
+      }
+      ctx.stroke();
+      ctx.save();
+      ctx.shadowColor='rgba(76,230,162,.8)'; ctx.shadowBlur=14;
+      ctx.fillStyle='#4ce6a2';
+      ctx.beginPath(); ctx.arc(px,py,9,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      // velocity vector (tangent)
+      const tangAngle = theta; // tangent direction
+      const vx2 = px + 42*Math.cos(tangAngle);
+      const vy2 = py + 42*Math.sin(tangAngle);
+      drawArrow(ctx, px, py, vx2, vy2, '#6fb8ff', 2.5);
+      // centripetal accel vector (toward center)
+      const toCx = cx-px, toCy = cy-py;
+      const dist = Math.hypot(toCx,toCy)||1;
+      const ax2 = px + (toCx/dist)*34, ay2 = py + (toCy/dist)*34;
+      drawArrow(ctx, px, py, ax2, ay2, '#ff7a7a', 2.5);
+      ctx.font='11px monospace'; ctx.textAlign='left';
+      ctx.fillStyle='#6fb8ff'; ctx.fillText('v', vx2+4, vy2);
+      ctx.fillStyle='#ff7a7a'; ctx.fillText('a꜀', ax2+4, ay2);
+
+      const gfit = fitCanvas(gGraph);
+      const winStart = Math.max(0, t-tmaxWin);
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:winStart, xmax:winStart+tmaxWin, ymin:0, ymax:(theta - winStart*w)+w*tmaxWin+1, points: history.length?history:[{x:t,y:theta}], color:'rgba(111,184,255,1)', xlabel:'t(s)', ylabel:'θ', fill:true});
+    }
+    window.__mcu_draw = draw;
+  })();
+
+  /* ---------- main animation loop ---------- */
+  let last = performance.now();
+  function loop(now){
+    const dt = Math.min(0.05, (now-last)/1000);
+    last = now;
+    if(activeTopic==='mru') window.__mru_draw(dt);
+    else if(activeTopic==='mruv') window.__mruv_draw(dt);
+    else if(activeTopic==='lanc') window.__lanc_draw(dt);
+    else if(activeTopic==='mcu') window.__mcu_draw(dt);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  window.addEventListener('resize', ()=>{ /* canvases re-fit each frame via fitCanvas */ });
+
+})();
+</script>
+</body>
+</html>
