@@ -177,12 +177,12 @@
   min-width: 250px;
   background: var(--global-bg-color);
 
-  a {
-    display: block;
-    margin: 0 1rem;
-    padding: 0.5rem 0;
-    color: var(--global-masthead-link-color);
-    text-decoration: none;
+ a {
+  display: block;
+  margin: 0 1.3rem;
+  padding: 0.5rem 0;
+  color: var(--global-masthead-link-color);
+  text-decoration: none;
 
     &:hover {
       color: var(--global-masthead-link-color-hover);
