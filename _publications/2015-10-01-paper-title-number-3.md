@@ -1,13 +1,13 @@
 ---
-title: "Paper Title Number 3"
-collection: publications
+title: "Aula de Cinemática"
+collection: files
 category: manuscripts
-permalink: /publication/2015-10-01-paper-title-number-3
-excerpt: 'This paper is about the number 3. The number 4 is left for future work.'
-date: 2015-10-01
-venue: 'Journal 1'
-slidesurl: 'https://academicpages.github.io/files/slides3.pdf'
-paperurl: 'https://academicpages.github.io/files/paper3.pdf'
+permalink: /files/cinematica
+excerpt: 'Dashboard interativo com simulações ao vivo para projeção em sala, cobrindo MRU, MRUV, lançamento de projéteis e MCU.'
+date: 2026-08-02
+venue: ''
+slidesurl: 'https://andrewdsam.github.io/files/Aula-Cinemática.pdf'
+paperurl: 'https://andrewdsam.github.io/files/cinematica.html'
 citation: 'Your Name, You. (2015). &quot;Paper Title Number 3.&quot; <i>Journal 1</i>. 1(3).'
 ---
 
