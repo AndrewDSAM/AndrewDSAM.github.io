@@ -7,7 +7,7 @@ excerpt: 'Dashboard interativo com simulações ao vivo para projeção em sala,
 date: 2026-08-02
 venue: ''
 slidesurl: 'https://andrewdsam.github.io/files/Aula-Cinemática.pdf'
-paperurl: 'https://andrewdsam.github.io/files/cinematica.html'
+paperurl: 'https://andrewdsam.github.io/files/cinematica-dashboard.html'
 citation: 'Your Name, You. (2015). &quot;Paper Title Number 3.&quot; <i>Journal 1</i>. 1(3).'
 ---
 
