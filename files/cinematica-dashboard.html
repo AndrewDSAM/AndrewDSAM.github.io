@@ -81,7 +81,7 @@
     color:var(--text);
   }
   nav.tabs{
-    display:flex; gap:8px;
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
   }
   .tab{
     font-family:var(--font-mono);
@@ -118,19 +118,15 @@
   /* ===== MAIN LAYOUT ===== */
   main{
     flex:1; min-height:0;
-    display:grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap:14px;
+    position:relative;
   }
   .panel{
     display:none;
     min-height:0;
-    grid-column:1 / -1;
-    grid-template-columns: 1.5fr 1fr;
-    gap:14px;
     height:100%;
+    gap:14px;
   }
-  .panel.active{ display:grid; }
+  .panel.active{ display:flex; flex-direction:row; }
 
   .card{
     background:var(--bg-panel);
@@ -157,7 +153,7 @@
   }
 
   /* left column: simulation */
-  .sim-col{ display:flex; flex-direction:column; gap:14px; min-height:0; }
+  .sim-col{ flex:1.5; min-height:0; display:flex; flex-direction:column; gap:14px; }
   .sim-card{ flex:1; min-height:0; }
   .sim-canvas-wrap{ flex:1; position:relative; min-height:0; }
   canvas{ display:block; width:100%; height:100%; }
@@ -199,8 +195,21 @@
   .toggle-btn.active{ color:var(--amber); border-color:var(--amber-dim); }
 
   /* right column: formulas + graphs */
-  .info-col{ display:flex; flex-direction:column; gap:14px; min-height:0; }
-  .formula-card{ flex-shrink:0; }
+  .info-col{ flex:1; min-height:0; display:flex; flex-direction:column; gap:14px; }
+  .formula-card{ flex:1; min-height:0; }
+  .folder-nav{ display:flex; gap:6px; flex-shrink:0; }
+  .folder-tab{
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.05em;
+    background:var(--bg-panel); border:1px solid var(--border); border-bottom:none;
+    color:var(--text-dim); padding:8px 14px 7px; border-radius:6px 6px 0 0; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .folder-tab:hover{ color:var(--text); }
+  .folder-tab.active{ color:var(--green); background:var(--bg-panel-2); border-color:var(--green-dim); }
+  .folder-tab .icon{ font-size:10px; opacity:.75; }
+  .sub-view{ display:none; flex:1; min-height:0; }
+  .sub-view.active{ display:flex; flex-direction:column; min-height:0; }
   .formula-body{ padding:14px; display:flex; flex-direction:column; gap:10px; overflow:auto; }
   .formula{
     font-family:var(--font-mono); font-size:16px; color:var(--green);
@@ -208,6 +217,9 @@
     border-radius:6px; padding:9px 12px; letter-spacing:.01em;
   }
   .formula .label{ color:var(--text-faint); font-size:10px; letter-spacing:.1em; display:block; margin-bottom:3px; text-transform:uppercase; }
+  .formula.dim{ opacity:.4; }
+  .formula.highlight{ border-color:var(--amber); box-shadow:0 0 0 1px var(--amber-dim) inset; background:rgba(255,180,84,.06); }
+  .formula.highlight .label{ color:var(--amber-dim); }
   .note{ font-size:12.5px; color:var(--text-dim); line-height:1.5; padding:0 2px; }
   .note b{ color:var(--text); }
 
@@ -234,7 +246,21 @@
   }
 
   @media (max-width: 900px){
-    .panel{ grid-template-columns:1fr; }
+    html,body{ height:auto; overflow:auto; }
+    #app{ height:auto; min-height:100vh; overflow:visible; padding:12px 12px 16px; }
+    header{ flex-direction:column; align-items:flex-start; gap:10px; }
+    nav.tabs{ justify-content:flex-start; width:100%; }
+    .tab{ min-width:0; flex:1 1 auto; padding:8px 8px 6px; font-size:11px; }
+    .tab .ch{ display:none; }
+    main{ overflow:visible; }
+    .panel{ height:auto; }
+    .panel.active{ flex-direction:column; }
+    .sim-col{ flex:none; }
+    .sim-card{ flex:none; height:52vh; min-height:260px; }
+    .info-col{ flex:none; height:56vh; min-height:320px; }
+    .controls{ gap:10px; }
+    .slider-group{ flex:1 1 auto; }
+    input[type=range]{ width:100%; min-width:80px; }
   }
 </style>
 </head>
@@ -251,6 +277,7 @@
       <div class="tab" data-topic="mruv"><span class="ch">CH.2</span>MRUV<span class="dot"></span></div>
       <div class="tab" data-topic="lanc"><span class="ch">CH.3</span>LANÇAMENTOS<span class="dot"></span></div>
       <div class="tab" data-topic="mcu"><span class="ch">CH.4</span>MCU<span class="dot"></span></div>
+      <div class="tab" data-topic="transm"><span class="ch">CH.5</span>TRANSMISSÃO<span class="dot"></span></div>
     </nav>
   </header>
 
@@ -273,6 +300,11 @@
         </div>
       </div>
       <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
         <div class="card formula-card">
           <div class="card-head"><h2>Equação horária</h2></div>
           <div class="formula-body">
@@ -286,12 +318,15 @@
             <p class="note">Velocidade <b>constante</b>: o gráfico v×t é uma reta horizontal e a <b>área sob a reta</b> é o deslocamento. O gráfico S×t é uma reta cuja inclinação é a própria velocidade.</p>
           </div>
         </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
         <div class="card graph-card">
           <div class="card-head"><h2>Gráficos</h2><span class="tag">v×t · S×t</span></div>
           <div class="graph-split">
             <canvas id="mru-graph-v"></canvas>
             <canvas id="mru-graph-s"></canvas>
           </div>
+        </div>
         </div>
       </div>
     </section>
@@ -317,6 +352,11 @@
         </div>
       </div>
       <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
         <div class="card formula-card">
           <div class="card-head"><h2>Equações horárias</h2></div>
           <div class="formula-body">
@@ -331,12 +371,15 @@
             <p class="note">Aceleração <b>constante</b>: o gráfico v×t é uma reta inclinada (a = declividade) e o gráfico S×t é uma <b>parábola</b>.</p>
           </div>
         </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
         <div class="card graph-card">
           <div class="card-head"><h2>Gráficos</h2><span class="tag">v×t · S×t</span></div>
           <div class="graph-split">
             <canvas id="mruv-graph-v"></canvas>
             <canvas id="mruv-graph-s"></canvas>
           </div>
+        </div>
         </div>
       </div>
     </section>
@@ -380,15 +423,23 @@
         </div>
       </div>
       <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
         <div class="card formula-card">
           <div class="card-head"><h2>Decomposição</h2><span class="tag">g = 10 m/s²</span></div>
           <div class="formula-body" id="lanc-formula-body">
             <!-- filled dynamically -->
           </div>
         </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
         <div class="card graph-card">
           <div class="card-head"><h2>Trajetória</h2><span class="tag">y × x</span></div>
           <div class="graph-wrap"><canvas id="lanc-graph"></canvas></div>
+        </div>
         </div>
       </div>
     </section>
@@ -414,6 +465,11 @@
         </div>
       </div>
       <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
         <div class="card formula-card">
           <div class="card-head"><h2>Grandezas</h2></div>
           <div class="formula-body">
@@ -430,9 +486,82 @@
             <p class="note">O vetor <b style="color:var(--blue)">velocidade</b> é sempre tangente à trajetória; o vetor <b style="color:var(--red)">aceleração centrípeta</b> aponta sempre para o centro.</p>
           </div>
         </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
         <div class="card graph-card">
           <div class="card-head"><h2>Gráfico</h2><span class="tag">θ (rad) × t</span></div>
           <div class="graph-wrap"><canvas id="mcu-graph"></canvas></div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TRANSMISSÃO ============ -->
+    <section class="panel" data-panel="transm">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head">
+            <h2>Transmissão de Movimento Circular</h2>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="transm-eixo">Mesmo eixo</button>
+              <button class="toggle-btn" id="transm-correia">Mesma correia</button>
+            </div>
+          </div>
+          <div class="sim-canvas-wrap"><canvas id="transm-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="transm-play">⏸ Pausar</button>
+            <button class="btn" id="transm-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>R<sub>A</sub> <span class="val" id="transm-RA-val">0.6 m</span></label>
+              <input type="range" id="transm-RA" min="0.3" max="1.5" step="0.1" value="0.6">
+            </div>
+            <div class="slider-group">
+              <label>R<sub>B</sub> <span class="val" id="transm-RB-val">1.0 m</span></label>
+              <input type="range" id="transm-RB" min="0.3" max="1.5" step="0.1" value="1.0">
+            </div>
+            <div class="slider-group" id="transm-T-group">
+              <label>T <span class="val" id="transm-T-val">3.0 s</span></label>
+              <input type="range" id="transm-T" min="1" max="6" step="0.5" value="3">
+            </div>
+            <div class="slider-group" id="transm-v-group" style="display:none;">
+              <label>v <span class="val" id="transm-v-val">3.0 m/s</span></label>
+              <input type="range" id="transm-v" min="1" max="8" step="0.5" value="3">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Relações de transmissão</h2></div>
+          <div class="formula-body">
+            <div class="formula highlight" id="transm-formula-eixo"><span class="label">Mesmo eixo</span>ω_A = ω_B &nbsp;→&nbsp; T_A = T_B, f_A = f_B</div>
+            <div class="formula" id="transm-formula-correia"><span class="label">Mesma correia</span>v_A = v_B &nbsp;→&nbsp; ω_A·R_A = ω_B·R_B</div>
+            <p class="note">No <b>mesmo eixo</b>, as duas rodas giram juntas — mesma velocidade angular e mesmo período — mas a velocidade linear na borda é maior na roda de raio maior (v = ω·R). Na <b>mesma correia</b>, é a velocidade linear na borda que é igual nas duas rodas — por isso a roda menor gira mais rápido (ω maior) para acompanhar.</p>
+            <div class="readout-row">
+              <div class="readout"><span class="k">Roda A · R</span><span class="v" id="transm-RA-read">0.6 m</span></div>
+              <div class="readout"><span class="k">T_A</span><span class="v" id="transm-TA-read">3.0 s</span></div>
+              <div class="readout"><span class="k">ω_A</span><span class="v" id="transm-wA-read">2.09 rad/s</span></div>
+              <div class="readout"><span class="k">v_A</span><span class="v" id="transm-vA-read">1.26 m/s</span></div>
+            </div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">Roda B · R</span><span class="v" id="transm-RB-read">1.0 m</span></div>
+              <div class="readout"><span class="k">T_B</span><span class="v" id="transm-TB-read">3.0 s</span></div>
+              <div class="readout"><span class="k">ω_B</span><span class="v" id="transm-wB-read">2.09 rad/s</span></div>
+              <div class="readout"><span class="k">v_B</span><span class="v" id="transm-vB-read">2.09 m/s</span></div>
+            </div>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag">θ_A e θ_B × t</span></div>
+          <div class="graph-wrap"><canvas id="transm-graph"></canvas></div>
+        </div>
         </div>
       </div>
     </section>
@@ -530,11 +659,64 @@
     }
     // labels
     ctx.fillStyle = '#5b6a76';
-    ctx.font = '10px var(--font-mono)';
+    ctx.font = '10px monospace';
     ctx.textAlign='right';
     ctx.fillText(ylabel||'', padL-4, padT+9);
     ctx.textAlign='left';
     ctx.fillText(xlabel||'', w-padR-24, h-4);
+  }
+
+  // multi-line plotter for comparing two series (e.g. theta_A vs theta_B)
+  function plotMulti(ctx,w,h,{xmin,xmax,ymin,ymax,series,xlabel}){
+    clear(ctx,w,h);
+    const padL=34, padR=10, padT=16, padB=20;
+    const pw = w-padL-padR, ph = h-padT-padB;
+    gridBg(ctx,w,h,Math.max(20, pw/8));
+    function mapX(x){ return padL + (x-xmin)/(xmax-xmin||1) * pw; }
+    function mapY(y){ return padT + ph - (y-ymin)/(ymax-ymin||1) * ph; }
+    ctx.strokeStyle = '#2b3742'; ctx.lineWidth=1;
+    const y0 = mapY(Math.max(ymin,Math.min(0,ymax)));
+    ctx.beginPath(); ctx.moveTo(padL,y0); ctx.lineTo(w-padR,y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,h-padB); ctx.stroke();
+    (series||[]).forEach(s=>{
+      if(!s.points || s.points.length<2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = s.color; ctx.lineWidth = 2.2;
+      ctx.shadowColor = s.color; ctx.shadowBlur = 6;
+      s.points.forEach((p,i)=>{
+        const px = mapX(p.x), py = mapY(Math.max(ymin,Math.min(ymax,p.y)));
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      });
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      const last = s.points[s.points.length-1];
+      ctx.beginPath(); ctx.fillStyle = s.color;
+      ctx.arc(mapX(last.x), mapY(Math.max(ymin,Math.min(ymax,last.y))), 3.2, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.fillStyle = '#5b6a76'; ctx.font = '10px monospace'; ctx.textAlign='left';
+    ctx.fillText(xlabel||'', w-padR-24, h-4);
+    let lx = padL+4;
+    (series||[]).forEach(s=>{
+      ctx.fillStyle = s.color; ctx.fillRect(lx, padT-11, 8, 8);
+      ctx.fillStyle = '#8695a3'; ctx.fillText(s.label||'', lx+12, padT-4);
+      lx += ctx.measureText(s.label||'').width + 30;
+    });
+  }
+
+  // external-tangent points between two circles (centers at same y), for drawing a belt loop
+  function beltPoints(cx1,cy1,r1,cx2,cy2,r2){
+    const d = Math.max(1, Math.abs(cx2-cx1));
+    const ratio = Math.max(-1, Math.min(1, (r1-r2)/d));
+    const phi = Math.asin(ratio);
+    const a = Math.PI/2 + phi;
+    const b = -(Math.PI/2 + phi);
+    return {
+      p1u: {x:cx1+r1*Math.cos(a), y:cy1+r1*Math.sin(a)},
+      p2u: {x:cx2+r2*Math.cos(a), y:cy2+r2*Math.sin(a)},
+      p1l: {x:cx1+r1*Math.cos(b), y:cy1+r1*Math.sin(b)},
+      p2l: {x:cx2+r2*Math.cos(b), y:cy2+r2*Math.sin(b)}
+    };
   }
 
   /* ---------- tabs ---------- */
@@ -547,7 +729,18 @@
     panels.forEach(el=>el.classList.toggle('active', el.dataset.panel===t));
   }
   tabs.forEach(el=>el.addEventListener('click', ()=>setTopic(el.dataset.topic)));
-  const order = ['mru','mruv','lanc','mcu'];
+
+  /* ---------- folder sub-tabs (Fórmulas / Gráficos) inside each topic ---------- */
+  document.querySelectorAll('.folder-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const infoCol = btn.closest('.info-col');
+      if(!infoCol) return;
+      infoCol.querySelectorAll('.folder-tab').forEach(b=>b.classList.toggle('active', b===btn));
+      const sub = btn.dataset.sub;
+      infoCol.querySelectorAll('.sub-view').forEach(v=>v.classList.toggle('active', v.dataset.subView===sub));
+    });
+  });
+  const order = ['mru','mruv','lanc','mcu','transm'];
   document.addEventListener('keydown', (e)=>{
     if(e.code==='Tab'){ e.preventDefault(); const i=order.indexOf(activeTopic); setTopic(order[(i+1)%order.length]); }
     if(e.code==='Space'){
@@ -944,6 +1137,147 @@
     window.__mcu_draw = draw;
   })();
 
+  /* =========================================================
+     TRANSMISSÃO DE MOVIMENTO CIRCULAR (mesmo eixo / mesma correia)
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('transm-canvas');
+    const gGraph = document.getElementById('transm-graph');
+    const btnEixo = document.getElementById('transm-eixo');
+    const btnCorreia = document.getElementById('transm-correia');
+    const fEixo = document.getElementById('transm-formula-eixo');
+    const fCorreia = document.getElementById('transm-formula-correia');
+    const TGroup = document.getElementById('transm-T-group');
+    const vGroup = document.getElementById('transm-v-group');
+
+    const RASlider = document.getElementById('transm-RA');
+    const RBSlider = document.getElementById('transm-RB');
+    const TSlider = document.getElementById('transm-T');
+    const vSlider = document.getElementById('transm-v');
+    const RAVal = document.getElementById('transm-RA-val');
+    const RBVal = document.getElementById('transm-RB-val');
+    const TVal = document.getElementById('transm-T-val');
+    const vVal = document.getElementById('transm-v-val');
+    const playBtn = document.getElementById('transm-play');
+    const resetBtn = document.getElementById('transm-reset');
+
+    let mode = 'eixo';
+    let RA = parseFloat(RASlider.value), RB = parseFloat(RBSlider.value);
+    let Tcommon = parseFloat(TSlider.value), vBelt = parseFloat(vSlider.value);
+    let t = 0, playing = true;
+    let histA = [], histB = [];
+
+    function reset(){ t=0; histA=[]; histB=[]; }
+
+    function setMode(m){
+      mode = m;
+      btnEixo.classList.toggle('active', m==='eixo');
+      btnCorreia.classList.toggle('active', m==='correia');
+      fEixo.classList.toggle('highlight', m==='eixo');
+      fCorreia.classList.toggle('highlight', m==='correia');
+      TGroup.style.display = m==='eixo' ? 'flex' : 'none';
+      vGroup.style.display = m==='correia' ? 'flex' : 'none';
+      reset();
+    }
+    btnEixo.addEventListener('click', ()=>setMode('eixo'));
+    btnCorreia.addEventListener('click', ()=>setMode('correia'));
+
+    RASlider.addEventListener('input', ()=>{ RA=parseFloat(RASlider.value); RAVal.textContent=RA.toFixed(1)+' m'; reset(); });
+    RBSlider.addEventListener('input', ()=>{ RB=parseFloat(RBSlider.value); RBVal.textContent=RB.toFixed(1)+' m'; reset(); });
+    TSlider.addEventListener('input', ()=>{ Tcommon=parseFloat(TSlider.value); TVal.textContent=Tcommon.toFixed(1)+' s'; reset(); });
+    vSlider.addEventListener('input', ()=>{ vBelt=parseFloat(vSlider.value); vVal.textContent=vBelt.toFixed(1)+' m/s'; reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing) t += dt;
+
+      let wA, wB, TA, TB;
+      if(mode==='eixo'){
+        wA = 2*Math.PI/Tcommon; wB = wA;
+        TA = Tcommon; TB = Tcommon;
+      } else {
+        wA = vBelt/RA; wB = vBelt/RB;
+        TA = 2*Math.PI/wA; TB = 2*Math.PI/wB;
+      }
+      const fA = 1/TA, fB = 1/TB;
+      const vA = wA*RA, vB = wB*RB;
+      const thetaA = wA*t, thetaB = wB*t;
+
+      document.getElementById('transm-RA-read').textContent = RA.toFixed(1)+' m';
+      document.getElementById('transm-TA-read').textContent = TA.toFixed(2)+' s';
+      document.getElementById('transm-wA-read').textContent = wA.toFixed(2)+' rad/s';
+      document.getElementById('transm-vA-read').textContent = vA.toFixed(2)+' m/s';
+      document.getElementById('transm-RB-read').textContent = RB.toFixed(1)+' m';
+      document.getElementById('transm-TB-read').textContent = TB.toFixed(2)+' s';
+      document.getElementById('transm-wB-read').textContent = wB.toFixed(2)+' rad/s';
+      document.getElementById('transm-vB-read').textContent = vB.toFixed(2)+' m/s';
+
+      const tmaxWin = 4*Math.max(TA,TB);
+      histA.push({x:t,y:thetaA}); histB.push({x:t,y:thetaB});
+      while(histA.length && histA[0].x < t-tmaxWin) histA.shift();
+      while(histB.length && histB[0].x < t-tmaxWin) histB.shift();
+
+      const {ctx,w:cw,h:ch} = fitCanvas(canvas);
+      clear(ctx,cw,ch);
+      gridBg(ctx,cw,ch,40);
+      const cy = ch/2;
+      const maxR = Math.max(RA,RB);
+      const scale = Math.min(cw*0.32, ch*0.36) / maxR;
+
+      function drawWheel(cx, R, theta, color, label){
+        const r = R*scale;
+        ctx.strokeStyle = '#2b3843'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+        const px = cx + r*Math.cos(theta-Math.PI/2);
+        const py = cy + r*Math.sin(theta-Math.PI/2);
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+        ctx.save();
+        ctx.shadowColor = color; ctx.shadowBlur = 10;
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = '#5b6a76'; ctx.font='11px monospace'; ctx.textAlign='center';
+        ctx.fillText(label, cx, cy+r+18);
+      }
+
+      if(mode==='eixo'){
+        const cx = cw/2;
+        // shaft hub
+        ctx.fillStyle = '#3a4a56';
+        ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
+        drawWheel(cx, Math.max(RA,RB), thetaA, 'rgba(255,180,84,.9)', '');
+        drawWheel(cx, Math.min(RA,RB), thetaA, 'rgba(76,230,162,1)', '');
+        ctx.fillStyle = '#8695a3'; ctx.font='11px monospace'; ctx.textAlign='center';
+        ctx.fillText('A e B no mesmo eixo — giram juntos', cx, ch-14);
+      } else {
+        const gap = Math.max(cw*0.32, (RA+RB)*scale*1.15 + 60);
+        const cxA = cw/2 - gap/2, cxB = cw/2 + gap/2;
+        const rA = RA*scale, rB = RB*scale;
+        const bp = beltPoints(cxA,cy,rA,cxB,cy,rB);
+        ctx.strokeStyle = '#3a4a56'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(bp.p1u.x,bp.p1u.y); ctx.lineTo(bp.p2u.x,bp.p2u.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bp.p1l.x,bp.p1l.y); ctx.lineTo(bp.p2l.x,bp.p2l.y); ctx.stroke();
+        drawWheel(cxA, RA, thetaA, 'rgba(76,230,162,1)', 'A');
+        drawWheel(cxB, RB, thetaB, 'rgba(255,180,84,.9)', 'B');
+      }
+
+      const gfit = fitCanvas(gGraph);
+      const winStart = Math.max(0, t-tmaxWin);
+      plotMulti(gfit.ctx, gfit.w, gfit.h, {
+        xmin:winStart, xmax:winStart+tmaxWin, ymin:0,
+        ymax: Math.max(thetaA,thetaB) - winStart*Math.max(wA,wB) + Math.max(wA,wB)*tmaxWin + 1,
+        series:[
+          {points: histA.length?histA:[{x:t,y:thetaA}], color:'rgba(76,230,162,1)', label:'θ_A'},
+          {points: histB.length?histB:[{x:t,y:thetaB}], color:'rgba(255,180,84,1)', label:'θ_B'}
+        ],
+        xlabel:'t(s)'
+      });
+    }
+    window.__transm_draw = draw;
+  })();
+
   /* ---------- main animation loop ---------- */
   let last = performance.now();
   function loop(now){
@@ -953,6 +1287,7 @@
     else if(activeTopic==='mruv') window.__mruv_draw(dt);
     else if(activeTopic==='lanc') window.__lanc_draw(dt);
     else if(activeTopic==='mcu') window.__mcu_draw(dt);
+    else if(activeTopic==='transm') window.__transm_draw(dt);
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
