@@ -1,5 +1,5 @@
 ---
-title: "Paper Title Number 2"
+title: "Aula Dinamica"
 collection: files
 category: manuscripts
 permalink: /files/dinamica
