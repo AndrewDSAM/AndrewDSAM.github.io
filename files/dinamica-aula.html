@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dinâmica — Painel de Aula</title>
+<style>
+  :root{
+    --bg:#080b0d;
+    --bg-panel:#0f1418;
+    --bg-panel-2:#141a1f;
+    --grid:#1c252c;
+    --border:#212b32;
+    --green:#4ce6a2;
+    --green-dim:#2c8562;
+    --green-glow:rgba(76,230,162,.45);
+    --amber:#ffb454;
+    --amber-dim:#8a6530;
+    --red:#ff7a7a;
+    --blue:#6fb8ff;
+    --text:#e8eef2;
+    --text-dim:#8695a3;
+    --text-faint:#4f5c68;
+    --font-display: 'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono','Cascadia Mono','JetBrains Mono', Consolas, 'Courier New', monospace;
+    --font-body: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    overflow:hidden;
+  }
+  body{
+    background-image:
+      radial-gradient(ellipse at 15% 0%, rgba(76,230,162,.05), transparent 55%),
+      radial-gradient(ellipse at 85% 100%, rgba(255,180,84,.04), transparent 55%);
+  }
+  /* subtle scanline / CRT texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.012) 0px,
+      rgba(255,255,255,0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    z-index:50;
+    mix-blend-mode:overlay;
+  }
+
+  #app{
+    display:flex; flex-direction:column;
+    height:100vh; width:100vw;
+    padding:16px 22px 18px;
+  }
+
+  /* ===== HEADER / TABS ===== */
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    padding-bottom:12px; margin-bottom:14px;
+    flex-shrink:0;
+  }
+  .brand{
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .brand .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px; letter-spacing:.28em; text-transform:uppercase;
+    color:var(--green); opacity:.85;
+  }
+  .brand h1{
+    margin:0; font-family:var(--font-display);
+    font-weight:800; font-size:26px; letter-spacing:-0.01em;
+    color:var(--text);
+  }
+  nav.tabs{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+  }
+  .tab{
+    font-family:var(--font-mono);
+    font-size:13px; letter-spacing:.06em;
+    color:var(--text-dim);
+    background:var(--bg-panel);
+    border:1px solid var(--border);
+    padding:10px 16px 8px;
+    border-radius:6px 6px 0 0;
+    cursor:pointer;
+    position:relative;
+    display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+    min-width:118px;
+  }
+  .tab .ch{
+    font-size:9px; color:var(--text-faint); letter-spacing:.14em;
+  }
+  .tab:hover{ color:var(--text); border-color:#2c3944; }
+  .tab.active{
+    color:var(--green);
+    background:var(--bg-panel-2);
+    border-color:var(--green-dim);
+    box-shadow: 0 -2px 14px -4px var(--green-glow) inset;
+  }
+  .tab.active .ch{ color:var(--green-dim); }
+  .tab .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--text-faint);
+    position:absolute; top:9px; right:10px;
+  }
+  .tab.active .dot{ background:var(--green); box-shadow:0 0 6px 1px var(--green-glow); }
+
+  /* ===== MAIN LAYOUT ===== */
+  main{
+    flex:1; min-height:0;
+    position:relative;
+  }
+  .panel{
+    display:none;
+    min-height:0;
+    height:100%;
+    gap:14px;
+  }
+  .panel.active{ display:flex; flex-direction:row; }
+
+  .card{
+    background:var(--bg-panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    display:flex; flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  .card-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    background:var(--bg-panel-2);
+    flex-shrink:0;
+  }
+  .card-head h2{
+    margin:0; font-family:var(--font-display); font-weight:700;
+    font-size:14px; letter-spacing:.02em; color:var(--text);
+  }
+  .card-head .tag{
+    font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint);
+    letter-spacing:.1em; text-transform:uppercase;
+  }
+
+  /* left column: simulation */
+  .sim-col{ flex:1.5; min-height:0; display:flex; flex-direction:column; gap:14px; }
+  .sim-card{ flex:1; min-height:0; }
+  .sim-canvas-wrap{ flex:1; position:relative; min-height:0; }
+  canvas{ display:block; width:100%; height:100%; }
+
+  .controls{
+    display:flex; align-items:center; gap:18px;
+    padding:10px 14px; border-top:1px solid var(--border);
+    background:var(--bg-panel-2); flex-shrink:0; flex-wrap:wrap;
+  }
+  .btn{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.05em;
+    background:transparent; border:1px solid var(--border); color:var(--text);
+    padding:7px 12px; border-radius:5px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    transition:border-color .15s, color .15s;
+  }
+  .btn:hover{ border-color:var(--green-dim); color:var(--green); }
+  .slider-group{ display:flex; align-items:center; gap:8px; }
+  .slider-group label{
+    font-family:var(--font-mono); font-size:11px; color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .slider-group .val{ color:var(--amber); min-width:52px; display:inline-block; }
+  input[type=range]{
+    -webkit-appearance:none; width:110px; height:3px; background:var(--border);
+    border-radius:2px; outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:13px; height:13px; border-radius:50%;
+    background:var(--green); cursor:pointer; box-shadow:0 0 6px var(--green-glow);
+    border:2px solid #0a0d0f;
+  }
+  .toggle-group{ display:flex; gap:4px; }
+  .toggle-btn{
+    font-family:var(--font-mono); font-size:11px; padding:6px 10px;
+    border-radius:5px; border:1px solid var(--border); background:transparent;
+    color:var(--text-dim); cursor:pointer;
+  }
+  .toggle-btn.active{ color:var(--amber); border-color:var(--amber-dim); }
+
+  /* right column: formulas + graphs */
+  .info-col{ flex:1; min-height:0; display:flex; flex-direction:column; gap:14px; }
+  .formula-card{ flex:1; min-height:0; }
+  .folder-nav{ display:flex; gap:6px; flex-shrink:0; }
+  .folder-tab{
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.05em;
+    background:var(--bg-panel); border:1px solid var(--border); border-bottom:none;
+    color:var(--text-dim); padding:8px 14px 7px; border-radius:6px 6px 0 0; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .folder-tab:hover{ color:var(--text); }
+  .folder-tab.active{ color:var(--green); background:var(--bg-panel-2); border-color:var(--green-dim); }
+  .folder-tab .icon{ font-size:10px; opacity:.75; }
+  .sub-view{ display:none; flex:1; min-height:0; }
+  .sub-view.active{ display:flex; flex-direction:column; min-height:0; }
+  .formula-body{ padding:14px; display:flex; flex-direction:column; gap:10px; overflow:auto; }
+  .formula{
+    font-family:var(--font-mono); font-size:16px; color:var(--green);
+    background:rgba(76,230,162,.06); border:1px solid var(--green-dim);
+    border-radius:6px; padding:9px 12px; letter-spacing:.01em;
+  }
+  .formula .label{ color:var(--text-faint); font-size:10px; letter-spacing:.1em; display:block; margin-bottom:3px; text-transform:uppercase; }
+  .formula.dim{ opacity:.4; }
+  .formula.highlight{ border-color:var(--amber); box-shadow:0 0 0 1px var(--amber-dim) inset; background:rgba(255,180,84,.06); }
+  .formula.highlight .label{ color:var(--amber-dim); }
+  .note{ font-size:12.5px; color:var(--text-dim); line-height:1.5; padding:0 2px; }
+  .note b{ color:var(--text); }
+
+  .readout-row{ display:flex; gap:8px; flex-wrap:wrap; padding:0 2px; }
+  .readout{
+    font-family:var(--font-mono); font-size:12px; color:var(--text-dim);
+    background:var(--bg-panel-2); border:1px solid var(--border);
+    border-radius:5px; padding:6px 10px; flex:1; min-width:78px;
+  }
+  .readout .k{ color:var(--text-faint); font-size:10px; display:block; letter-spacing:.08em; }
+  .readout .v{ color:var(--amber); font-size:14px; }
+
+  .graph-card{ flex:1; min-height:0; display:flex; flex-direction:column; }
+  .graph-wrap{ flex:1; min-height:0; display:flex; flex-direction:column; }
+  .graph-wrap canvas{ flex:1; }
+  .graph-split{ flex:1; display:flex; flex-direction:column; min-height:0; overflow-y:auto; }
+  .graph-split canvas{ flex:1 1 0; min-height:90px; border-bottom:1px solid var(--border); }
+  .graph-split canvas:last-child{ border-bottom:none; }
+  .graph-row{ flex:1 1 0; min-height:90px; display:flex; border-bottom:1px solid var(--border); }
+  .graph-row:last-child{ border-bottom:none; }
+  .graph-row canvas{ flex:1 1 0; min-width:0; height:100%; border-bottom:none; border-right:1px solid var(--border); }
+  .graph-row canvas:last-child{ border-right:none; }
+
+  footer{
+    flex-shrink:0; padding-top:8px;
+    font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint);
+    letter-spacing:.08em; text-align:center;
+  }
+
+  @media (max-width: 900px){
+    html,body{ height:auto; overflow:auto; }
+    #app{ height:auto; min-height:100vh; overflow:visible; padding:12px 12px 16px; }
+    header{ flex-direction:column; align-items:flex-start; gap:10px; }
+    nav.tabs{ justify-content:flex-start; width:100%; }
+    .tab{ min-width:0; flex:1 1 auto; padding:8px 8px 6px; font-size:11px; }
+    .tab .ch{ display:none; }
+    main{ overflow:visible; }
+    .panel{ height:auto; }
+    .panel.active{ flex-direction:column; }
+    .sim-col{ flex:none; }
+    .sim-card{ flex:none; height:52vh; min-height:260px; }
+    .info-col{ flex:none; height:56vh; min-height:320px; }
+    .graph-split > canvas{ flex:0 0 auto; height:150px; }
+    .graph-row{ flex:0 0 auto; flex-direction:column; }
+    .graph-row canvas{ flex:0 0 auto; height:150px; width:100%; border-right:none; border-bottom:1px solid var(--border); }
+    .controls{ gap:10px; }
+    .slider-group{ flex:1 1 auto; }
+    input[type=range]{ width:100%; min-width:80px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">
+      <span class="eyebrow">Física · Dinâmica</span>
+      <h1>Painel de Aula</h1>
+    </div>
+    <nav class="tabs" id="tabs">
+      <div class="tab active" data-topic="inercia"><span class="ch">CH.1</span>1ª LEI · INÉRCIA<span class="dot"></span></div>
+      <div class="tab" data-topic="pfd"><span class="ch">CH.2</span>2ª LEI · F=MA<span class="dot"></span></div>
+      <div class="tab" data-topic="acaoreacao"><span class="ch">CH.3</span>3ª LEI · BLOCOS<span class="dot"></span></div>
+      <div class="tab" data-topic="hooke"><span class="ch">CH.4</span>LEI DE HOOKE<span class="dot"></span></div>
+      <div class="tab" data-topic="atwood"><span class="ch">CH.5</span>ATWOOD · ELEVADOR<span class="dot"></span></div>
+      <div class="tab" data-topic="atrito"><span class="ch">CH.6</span>ATRITO<span class="dot"></span></div>
+      <div class="tab" data-topic="plano"><span class="ch">CH.7</span>PLANO INCLINADO<span class="dot"></span></div>
+      <div class="tab" data-topic="curvilineo"><span class="ch">CH.8</span>MOV. CURVILÍNEO<span class="dot"></span></div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============ 1ª LEI · INÉRCIA ============ -->
+    <section class="panel active" data-panel="inercia">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Princípio da Inércia</h2><span class="tag">superfície sem atrito</span></div>
+          <div class="sim-canvas-wrap"><canvas id="in-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="in-impulso">⚡ Aplicar impulso</button>
+            <button class="btn" id="in-freio">🛑 Parar (aplicar força)</button>
+            <button class="btn" id="in-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>massa <span class="val" id="in-m-val">2.0 kg</span></label>
+              <input type="range" id="in-m" min="0.5" max="6" step="0.5" value="2">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2>1ª Lei de Newton</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Enunciado</span>Todo corpo livre da ação de forças ou está em repouso ou realiza um MRU.</div>
+            <div class="formula"><span class="label">Impulso</span>F·Δt = Δp = m·Δv</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">m</span><span class="v" id="in-mread">2.0 kg</span></div>
+              <div class="readout"><span class="k">v</span><span class="v" id="in-v">0.0 m/s</span></div>
+              <div class="readout"><span class="k">ΣF</span><span class="v" id="in-F">0.0 N</span></div>
+              <div class="readout"><span class="k">estado</span><span class="v" id="in-estado">repouso</span></div>
+            </div>
+            <p class="note">Cada clique em <b>"Aplicar impulso"</b> aplica uma força F de 17,1 N durante 0,35 s (mesmo impulso Δp = 6 kg·m/s). Quanto <b>maior a massa</b>, menor é a variação de velocidade — a massa é a <b>medida da inércia</b>. Fora desses instantes, ΣF = 0 e a velocidade permanece exatamente constante (veja o gráfico ΣF × t).</p>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag">v×t · ΣF×t</span></div>
+          <div class="graph-split">
+            <canvas id="in-graph-F"></canvas>
+            <canvas id="in-graph"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 2ª LEI · F = M.A ============ -->
+    <section class="panel" data-panel="pfd">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Princípio Fundamental da Dinâmica</h2><span class="tag">F = m·a</span></div>
+          <div class="sim-canvas-wrap"><canvas id="pfd-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="pfd-play">⏸ Pausar</button>
+            <button class="btn" id="pfd-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>F <span class="val" id="pfd-F-val">6.0 N</span></label>
+              <input type="range" id="pfd-F" min="-15" max="15" step="1" value="6">
+            </div>
+            <div class="slider-group">
+              <label>m <span class="val" id="pfd-m-val">2.0 kg</span></label>
+              <input type="range" id="pfd-m" min="0.5" max="6" step="0.5" value="2">
+            </div>
+            <div class="slider-group">
+              <label>v₀ <span class="val" id="pfd-v0-val">2.0 m/s</span></label>
+              <input type="range" id="pfd-v0" min="-6" max="6" step="0.5" value="2">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Equação fundamental</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">2ª Lei</span>F = m · a &nbsp;→&nbsp; a = F / m</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">F</span><span class="v" id="pfd-Fread">6.0 N</span></div>
+              <div class="readout"><span class="k">m</span><span class="v" id="pfd-mread">2.0 kg</span></div>
+              <div class="readout"><span class="k">a</span><span class="v" id="pfd-a">3.0 m/s²</span></div>
+              <div class="readout"><span class="k">v(t)</span><span class="v" id="pfd-v">2.0 m/s</span></div>
+            </div>
+            <p class="note"><b>F</b> e <b>a</b> têm sempre a mesma direção e sentido. Quando <b>F</b> tem o mesmo sentido de <b>v</b>, o movimento é <b>acelerado</b>; quando tem sentido oposto, o movimento é <b>retardado</b>.</p>
+            <div class="readout-row">
+              <div class="readout"><span class="k">regime</span><span class="v" id="pfd-regime">acelerado</span></div>
+            </div>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráficos</h2><span class="tag">F×t · F×a · v×t · S×t</span></div>
+          <div class="graph-split">
+            <div class="graph-row"><canvas id="pfd-graph-F"></canvas><canvas id="pfd-graph-Fa"></canvas></div>
+            <div class="graph-row"><canvas id="pfd-graph-v"></canvas><canvas id="pfd-graph-s"></canvas></div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3ª LEI · AÇÃO-REAÇÃO / BLOCOS ============ -->
+    <section class="panel" data-panel="acaoreacao">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head">
+            <h2>Interação entre Blocos</h2>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="ar-contato">Em contato</button>
+              <button class="toggle-btn" id="ar-fio">Ligados por fio</button>
+            </div>
+          </div>
+          <div class="sim-canvas-wrap"><canvas id="ar-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="ar-play">⏸ Pausar</button>
+            <button class="btn" id="ar-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>F <span class="val" id="ar-F-val">10 N</span></label>
+              <input type="range" id="ar-F" min="2" max="30" step="1" value="10">
+            </div>
+            <div class="slider-group">
+              <label>m<sub>A</sub> <span class="val" id="ar-mA-val">2.0 kg</span></label>
+              <input type="range" id="ar-mA" min="0.5" max="6" step="0.5" value="2">
+            </div>
+            <div class="slider-group">
+              <label>m<sub>B</sub> <span class="val" id="ar-mB-val">3.0 kg</span></label>
+              <input type="range" id="ar-mB" min="0.5" max="6" step="0.5" value="3">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2 id="ar-formula-title">Blocos em contato</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">3ª Lei</span>Se A exerce força em B, B reage em A com mesmo módulo, mesma direção e sentido contrário.</div>
+            <div class="formula" id="ar-formula-system"><span class="label">Aceleração do sistema</span>a = F / (m<sub>A</sub> + m<sub>B</sub>)</div>
+            <div class="formula" id="ar-formula-internal"><span class="label">Força de contato (par ação-reação)</span>F' = m<sub>B</sub> · a</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">a</span><span class="v" id="ar-a">2.00 m/s²</span></div>
+              <div class="readout" id="ar-internal-readout"><span class="k" id="ar-internal-label">F'</span><span class="v" id="ar-internal">6.00 N</span></div>
+              <div class="readout"><span class="k">v(t)</span><span class="v" id="ar-v">0.0 m/s</span></div>
+              <div class="readout"><span class="k">t</span><span class="v" id="ar-t">0.0 s</span></div>
+            </div>
+            <p class="note" id="ar-note">Os dois blocos têm a <b>mesma aceleração</b> (estão em contato rígido). A força F empurra A, que empurra B através da força de contato F' — e, pela 3ª Lei, B empurra A de volta com -F'.</p>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag">Forças × t · v×t</span></div>
+          <div class="graph-split">
+            <canvas id="ar-graph-F"></canvas>
+            <canvas id="ar-graph-R"></canvas>
+            <canvas id="ar-graph"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LEI DE HOOKE ============ -->
+    <section class="panel" data-panel="hooke">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Deformações em Sistemas Elásticos</h2><span class="tag">F = K·Δx</span></div>
+          <div class="sim-canvas-wrap"><canvas id="ho-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="ho-play">⏸ Pausar</button>
+            <button class="btn" id="ho-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>K <span class="val" id="ho-K-val">200 N/m</span></label>
+              <input type="range" id="ho-K" min="50" max="600" step="10" value="200">
+            </div>
+            <div class="slider-group">
+              <label>massa <span class="val" id="ho-m-val">1.5 kg</span></label>
+              <input type="range" id="ho-m" min="0.2" max="5" step="0.1" value="1.5">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Lei de Hooke</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Lei de Hooke</span>F = K · Δx</div>
+            <p class="note">A força aplicada a uma mola (compressão ou alongamento) é igual à <b>constante elástica K</b> da mola vezes o <b>tamanho da deformação Δx</b>. Aqui, um bloco de massa <b>m</b> pendurado na mola estica-a até o equilíbrio: a força peso P = m·g é equilibrada pela força elástica F = K·Δx.</p>
+            <div class="readout-row">
+              <div class="readout"><span class="k">K</span><span class="v" id="ho-Kread">200 N/m</span></div>
+              <div class="readout"><span class="k">m</span><span class="v" id="ho-mread">1.5 kg</span></div>
+              <div class="readout"><span class="k">P = m·g</span><span class="v" id="ho-P">15.0 N</span></div>
+              <div class="readout"><span class="k">Δx = P/K</span><span class="v" id="ho-dx">7.5 cm</span></div>
+            </div>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag">Forças × t · F×Δx</span></div>
+          <div class="graph-split">
+            <canvas id="ho-graph-t"></canvas>
+            <canvas id="ho-graph"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ATWOOD · ELEVADOR ============ -->
+    <section class="panel" data-panel="atwood">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head">
+            <h2 id="at-title">Máquina de Atwood</h2>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="at-atwood">Atwood</button>
+              <button class="toggle-btn" id="at-elevador">Elevador</button>
+            </div>
+          </div>
+          <div class="sim-canvas-wrap"><canvas id="at-canvas"></canvas></div>
+          <div class="controls" id="at-controls-atwood">
+            <button class="btn" id="at-play">⏸ Pausar</button>
+            <button class="btn" id="at-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>m<sub>A</sub> <span class="val" id="at-mA-val">2.0 kg</span></label>
+              <input type="range" id="at-mA" min="0.5" max="8" step="0.5" value="2">
+            </div>
+            <div class="slider-group">
+              <label>m<sub>B</sub> <span class="val" id="at-mB-val">3.5 kg</span></label>
+              <input type="range" id="at-mB" min="0.5" max="8" step="0.5" value="3.5">
+            </div>
+          </div>
+          <div class="controls" id="at-controls-elevador" style="display:none;">
+            <button class="btn" id="at-play2">⏸ Pausar</button>
+            <button class="btn" id="at-reset2">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>massa <span class="val" id="at-mp-val">70 kg</span></label>
+              <input type="range" id="at-mp" min="30" max="120" step="5" value="70">
+            </div>
+            <div class="slider-group">
+              <label>a (↑+) <span class="val" id="at-ae-val">2.0 m/s²</span></label>
+              <input type="range" id="at-ae" min="-4" max="4" step="0.5" value="2">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card" id="at-formula-body">
+          <!-- filled dynamically -->
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2 id="at-graph-title">Gráfico</h2><span class="tag" id="at-graph-tag">v × t · forças × t</span></div>
+          <div class="graph-split">
+            <canvas id="at-graph-F"></canvas>
+            <canvas id="at-graph"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ATRITO ============ -->
+    <section class="panel" data-panel="atrito">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Atrito Estático e Cinético</h2><span class="tag">N = m·g</span></div>
+          <div class="sim-canvas-wrap"><canvas id="atr-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="atr-play">⏸ Pausar</button>
+            <button class="btn" id="atr-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>F <span class="val" id="atr-F-val">8 N</span></label>
+              <input type="range" id="atr-F" min="0" max="60" step="1" value="8">
+            </div>
+            <div class="slider-group">
+              <label>m <span class="val" id="atr-m-val">3.0 kg</span></label>
+              <input type="range" id="atr-m" min="1" max="8" step="0.5" value="3">
+            </div>
+            <div class="slider-group">
+              <label>μₛ <span class="val" id="atr-mus-val">0.40</span></label>
+              <input type="range" id="atr-mus" min="0.1" max="0.9" step="0.05" value="0.40">
+            </div>
+            <div class="slider-group">
+              <label>μₖ <span class="val" id="atr-muk-val">0.25</span></label>
+              <input type="range" id="atr-muk" min="0.05" max="0.8" step="0.05" value="0.25">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Forças de atrito</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Atrito estático máximo</span>Fat(máx) = μₛ · N</div>
+            <div class="formula"><span class="label">Atrito cinético</span>Fat = μₖ · N</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">N</span><span class="v" id="atr-N">30.0 N</span></div>
+              <div class="readout"><span class="k">Fat(máx)</span><span class="v" id="atr-Fsmax">12.0 N</span></div>
+              <div class="readout"><span class="k">Fat</span><span class="v" id="atr-Fat">8.0 N</span></div>
+              <div class="readout"><span class="k">regime</span><span class="v" id="atr-regime">estático</span></div>
+            </div>
+            <p class="note">Enquanto <b>F ≤ Fat(máx)</b>, o atrito é <b>estático</b> e se iguala a F — o bloco não sai do lugar. Quando <b>F</b> ultrapassa esse limite, o bloco desliza e o atrito passa a ser <b>cinético</b> (μₖ·N), normalmente menor que o máximo estático.</p>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag">Forças × t · Fat×F</span></div>
+          <div class="graph-split">
+            <canvas id="atr-graph-F"></canvas>
+            <canvas id="atr-graph"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PLANO INCLINADO ============ -->
+    <section class="panel" data-panel="plano">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head">
+            <h2>Plano Inclinado</h2>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="pl-desce">Descer</button>
+              <button class="toggle-btn" id="pl-sobe">Subir</button>
+            </div>
+          </div>
+          <div class="sim-canvas-wrap"><canvas id="pl-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="pl-play">⏸ Pausar</button>
+            <button class="btn" id="pl-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>θ <span class="val" id="pl-theta-val">30°</span></label>
+              <input type="range" id="pl-theta" min="5" max="75" step="1" value="30">
+            </div>
+            <div class="slider-group">
+              <label>m <span class="val" id="pl-m-val">2.0 kg</span></label>
+              <input type="range" id="pl-m" min="0.5" max="8" step="0.5" value="2">
+            </div>
+            <div class="slider-group">
+              <label>μ <span class="val" id="pl-mu-val">0.15</span></label>
+              <input type="range" id="pl-mu" min="0" max="0.7" step="0.05" value="0.15">
+            </div>
+            <div class="slider-group" id="pl-v0-group" style="display:none;">
+              <label>v₀ (subida) <span class="val" id="pl-v0-val">8.0 m/s</span></label>
+              <input type="range" id="pl-v0" min="2" max="12" step="0.5" value="8">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Decomposição do peso</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Normal</span>N = P · cos θ</div>
+            <div class="formula"><span class="label">Componente que puxa</span>F = P · sen θ</div>
+            <div class="formula"><span class="label">Com atrito</span>F − Fat = m · a</div>
+            <div class="formula"><span class="label">Descendo</span>a = g·(senθ − μ·cosθ)</div>
+            <div class="formula"><span class="label">Subindo (retardado)</span>a = g·(senθ + μ·cosθ)</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">P</span><span class="v" id="pl-P">20.0 N</span></div>
+              <div class="readout"><span class="k">N</span><span class="v" id="pl-N">17.3 N</span></div>
+              <div class="readout"><span class="k">F=P·senθ</span><span class="v" id="pl-Fx">10.0 N</span></div>
+            </div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">Fat</span><span class="v" id="pl-Fat">2.6 N</span></div>
+              <div class="readout"><span class="k">a</span><span class="v" id="pl-a">3.7 m/s²</span></div>
+              <div class="readout"><span class="k">v(t)</span><span class="v" id="pl-v">0.0 m/s</span></div>
+              <div class="readout"><span class="k">estado</span><span class="v" id="pl-regime">—</span></div>
+            </div>
+            <p class="note">O peso P é decomposto em uma componente perpendicular ao plano (equilibrada pela <b>Normal N</b>) e uma componente paralela ao plano (<b>F = P·senθ</b>), que tende a deslizar o bloco. O atrito <b>Fat = μ·N</b> se opõe ao movimento.</p>
+            <p class="note"><b>Subindo</b>, a componente F e o atrito apontam os dois para baixo e o bloco é freado. Ao parar, se <b>μ &lt; tg θ</b> ele volta a descer; se <b>μ ≥ tg θ</b>, o atrito estático o segura. A aceleração não depende da massa.</p>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag" id="pl-graph-tag">v × t (+ = descendo)</span></div>
+          <div class="graph-split">
+            <canvas id="pl-graph-F"></canvas>
+            <canvas id="pl-graph-N"></canvas>
+            <canvas id="pl-graph"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MOVIMENTO CURVILÍNEO ============ -->
+    <section class="panel" data-panel="curvilineo">
+      <div class="sim-col">
+        <div class="card sim-card">
+          <div class="card-head"><h2>Movimento Curvilíneo</h2><span class="tag">a = a꜀ + aₜ</span></div>
+          <div class="sim-canvas-wrap"><canvas id="cv-canvas"></canvas></div>
+          <div class="controls">
+            <button class="btn" id="cv-play">⏸ Pausar</button>
+            <button class="btn" id="cv-reset">↺ Reiniciar</button>
+            <div class="slider-group">
+              <label>v (tangencial) <span class="val" id="cv-v-val">4.0 m/s</span></label>
+              <input type="range" id="cv-v" min="1" max="8" step="0.5" value="4">
+            </div>
+            <div class="slider-group">
+              <label>a<sub>t</sub> (tangencial) <span class="val" id="cv-at-val">1.5 m/s²</span></label>
+              <input type="range" id="cv-at" min="-3" max="3" step="0.25" value="1.5">
+            </div>
+            <div class="slider-group">
+              <label>R (curva) <span class="val" id="cv-R-val">3.0 m</span></label>
+              <input type="range" id="cv-R" min="1" max="6" step="0.5" value="3">
+            </div>
+            <div class="slider-group">
+              <label>m <span class="val" id="cv-m-val">2.0 kg</span></label>
+              <input type="range" id="cv-m" min="0.5" max="6" step="0.5" value="2">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-col">
+        <div class="folder-nav">
+          <button class="folder-tab active" data-sub="formulas"><span class="icon">▤</span>Fórmulas</button>
+          <button class="folder-tab" data-sub="graficos"><span class="icon">▲</span>Gráficos</button>
+        </div>
+        <div class="sub-view active" data-sub-view="formulas">
+        <div class="card formula-card">
+          <div class="card-head"><h2>Componentes da aceleração</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Aceleração centrípeta (normal)</span>a꜀ = v² / R</div>
+            <div class="formula"><span class="label">Aceleração tangencial</span>aₜ = dv/dt</div>
+            <div class="formula"><span class="label">Forças correspondentes</span>F꜀ = m·a꜀ &nbsp;&nbsp; Fₜ = m·aₜ &nbsp;&nbsp; F = F꜀ + Fₜ</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">v</span><span class="v" id="cv-vread">4.0 m/s</span></div>
+              <div class="readout"><span class="k">a꜀</span><span class="v" id="cv-ac">5.33 m/s²</span></div>
+              <div class="readout"><span class="k">aₜ</span><span class="v" id="cv-atread">1.5 m/s²</span></div>
+              <div class="readout"><span class="k">|a|</span><span class="v" id="cv-amag">5.54 m/s²</span></div>
+            </div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">F꜀ = m·a꜀</span><span class="v" id="cv-Fc">10.7 N</span></div>
+              <div class="readout"><span class="k">Fₜ = m·aₜ</span><span class="v" id="cv-Ft">3.0 N</span></div>
+              <div class="readout"><span class="k">|F|</span><span class="v" id="cv-Ftot">11.1 N</span></div>
+            </div>
+            <p class="note">Num movimento curvilíneo, a aceleração tem duas componentes: a <b>centrípeta (a꜀)</b>, perpendicular à trajetória e responsável por mudar a <b>direção</b> da velocidade, e a <b>tangencial (aₜ)</b>, paralela à trajetória e responsável por mudar o <b>módulo</b> da velocidade.</p>
+          </div>
+        </div>
+        </div>
+        <div class="sub-view" data-sub-view="graficos">
+        <div class="card graph-card">
+          <div class="card-head"><h2>Gráfico</h2><span class="tag">Forças × t · v×t</span></div>
+          <div class="graph-split">
+            <canvas id="cv-graph-F"></canvas>
+            <canvas id="cv-graph"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>ESPAÇO · TAB para alternar canais &nbsp;·&nbsp; F11 para tela cheia</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const G = 10; // gravidade m/s^2
+
+  /* ---------- utilities ---------- */
+  function fitCanvas(canvas){
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width * dpr));
+    const h = Math.max(1, Math.round(rect.height * dpr));
+    if(canvas.width !== w || canvas.height !== h){
+      canvas.width = w; canvas.height = h;
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx, w: rect.width, h: rect.height};
+  }
+
+  function drawArrow(ctx, x1,y1,x2,y2, color, width){
+    const headlen = 8;
+    const dx = x2-x1, dy = y2-y1;
+    const angle = Math.atan2(dy,dx);
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineWidth = width||2;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-headlen*Math.cos(angle-Math.PI/6), y2-headlen*Math.sin(angle-Math.PI/6));
+    ctx.lineTo(x2-headlen*Math.cos(angle+Math.PI/6), y2-headlen*Math.sin(angle+Math.PI/6));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function clear(ctx,w,h){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#0b1013';
+    ctx.fillRect(0,0,w,h);
+  }
+
+  function gridBg(ctx,w,h,step){
+    ctx.strokeStyle = '#161e24';
+    ctx.lineWidth = 1;
+    for(let x=0; x<w; x+=step){ ctx.beginPath(); ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,h); ctx.stroke(); }
+    for(let y=0; y<h; y+=step){ ctx.beginPath(); ctx.moveTo(0,y+.5); ctx.lineTo(w,y+.5); ctx.stroke(); }
+  }
+
+  function fmtN(v){ return Math.abs(v)>=100 ? v.toFixed(0) : v.toFixed(1); }
+
+  function plot(ctx,w,h,{xmin,xmax,ymin,ymax,points,color,xlabel,ylabel,fill,title,ticks}){
+    clear(ctx,w,h);
+    const padL=34, padR=10, padT=10, padB=20;
+    const pw = w-padL-padR, ph = h-padT-padB;
+    gridBg(ctx,w,h,Math.max(20, pw/8));
+    function mapX(x){ return padL + (x-xmin)/(xmax-xmin||1) * pw; }
+    function mapY(y){ return padT + ph - (y-ymin)/(ymax-ymin||1) * ph; }
+    ctx.strokeStyle = '#2b3742'; ctx.lineWidth=1;
+    const y0 = mapY(Math.max(ymin,Math.min(0,ymax)));
+    ctx.beginPath(); ctx.moveTo(padL,y0); ctx.lineTo(w-padR,y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,h-padB); ctx.stroke();
+    if(points && points.length>1){
+      if(fill){
+        ctx.beginPath();
+        ctx.moveTo(mapX(points[0].x), y0);
+        points.forEach(p=>ctx.lineTo(mapX(p.x), mapY(p.y)));
+        ctx.lineTo(mapX(points[points.length-1].x), y0);
+        ctx.closePath();
+        ctx.fillStyle = color.replace('1)', '.12)');
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.strokeStyle = color; ctx.lineWidth = 2.2;
+      ctx.shadowColor = color; ctx.shadowBlur = 6;
+      points.forEach((p,i)=>{
+        const px = mapX(p.x), py = mapY(Math.max(ymin,Math.min(ymax,p.y)));
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      });
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      const last = points[points.length-1];
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(mapX(last.x), mapY(Math.max(ymin,Math.min(ymax,last.y))), 3.2, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#5b6a76';
+    ctx.font = '10px monospace';
+    ctx.textAlign='right';
+    ctx.fillText(ylabel||'', padL-4, padT+9);
+    ctx.textAlign='left';
+    ctx.fillText(xlabel||'', w-padR-24, h-4);
+    if(title){ ctx.fillStyle='#8695a3'; ctx.font='10.5px monospace'; ctx.textAlign='right'; ctx.fillText(title, w-padR-2, padT+9); }
+    if(ticks){
+      ctx.fillStyle='#5b6a76'; ctx.font='10px monospace'; ctx.textAlign='left';
+      ctx.fillText(fmtN(ymax), padL+4, padT+9);
+      if(ymin<0) ctx.fillText(fmtN(ymin), padL+4, h-padB-4);
+    }
+  }
+
+  // gráfico com várias séries (ex.: várias forças ao mesmo tempo). series: [{points,color,label,noMarker}]
+  function plotMulti(ctx,w,h,{xmin,xmax,ymin,ymax,series,xlabel,ylabel,title,ticks}){
+    clear(ctx,w,h);
+    const padL=34, padR=10, padT=24, padB=20;
+    const pw = w-padL-padR, ph = h-padT-padB;
+    gridBg(ctx,w,h,Math.max(20, pw/8));
+    function mapX(x){ return padL + (x-xmin)/(xmax-xmin||1) * pw; }
+    function mapY(y){ return padT + ph - (y-ymin)/(ymax-ymin||1) * ph; }
+    const cl = (y)=>Math.max(ymin,Math.min(ymax,y));
+    ctx.strokeStyle = '#2b3742'; ctx.lineWidth=1;
+    const y0 = mapY(Math.max(ymin,Math.min(0,ymax)));
+    ctx.beginPath(); ctx.moveTo(padL,y0); ctx.lineTo(w-padR,y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,h-padB); ctx.stroke();
+    if(xmin<0 && xmax>0){ const x0 = mapX(0); ctx.beginPath(); ctx.moveTo(x0,padT); ctx.lineTo(x0,h-padB); ctx.stroke(); }
+    (series||[]).forEach(sr=>{
+      const pts = sr.points || [];
+      ctx.fillStyle = sr.color; ctx.strokeStyle = sr.color;
+      if(pts.length>1){
+        ctx.beginPath(); ctx.lineWidth = 2.2; ctx.shadowColor = sr.color; ctx.shadowBlur = 6;
+        pts.forEach((p,i)=>{ const px = mapX(p.x), py = mapY(cl(p.y)); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); });
+        ctx.stroke(); ctx.shadowBlur = 0;
+      }
+      if(pts.length>=1 && !sr.noMarker){
+        const last = pts[pts.length-1];
+        ctx.beginPath(); ctx.arc(mapX(last.x), mapY(cl(last.y)), pts.length===1 ? 4.5 : 3.2, 0, Math.PI*2); ctx.fill();
+      }
+    });
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#5b6a76'; ctx.textAlign='right'; ctx.fillText(ylabel||'', padL-4, padT+9);
+    ctx.textAlign='left'; ctx.fillText(xlabel||'', w-padR-24, h-4);
+    if(title){ ctx.fillStyle='#8695a3'; ctx.font='10.5px monospace'; ctx.textAlign='left'; ctx.fillText(title, padL+2, 13); }
+    ctx.font = '10px monospace';
+    let total = 0;
+    (series||[]).forEach(sr=>{ total += 12 + ctx.measureText(sr.label||'').width + 12; });
+    let lx = w - padR - total + 12;
+    (series||[]).forEach(sr=>{
+      ctx.fillStyle = sr.color; ctx.fillRect(lx, 5, 8, 8);
+      ctx.fillStyle = '#8695a3'; ctx.textAlign='left'; ctx.fillText(sr.label||'', lx+12, 13);
+      lx += 12 + ctx.measureText(sr.label||'').width + 12;
+    });
+    if(ticks){
+      ctx.fillStyle='#5b6a76'; ctx.textAlign='left';
+      ctx.fillText(fmtN(ymax), padL+4, padT+10);
+      if(ymin<0) ctx.fillText(fmtN(ymin), padL+4, h-padB-4);
+    }
+  }
+
+  /* ---------- tabs ---------- */
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  let activeTopic = 'inercia';
+  function setTopic(t){
+    activeTopic = t;
+    tabs.forEach(el=>el.classList.toggle('active', el.dataset.topic===t));
+    panels.forEach(el=>el.classList.toggle('active', el.dataset.panel===t));
+  }
+  tabs.forEach(el=>el.addEventListener('click', ()=>setTopic(el.dataset.topic)));
+  const order = ['inercia','pfd','acaoreacao','hooke','atwood','atrito','plano','curvilineo'];
+  document.addEventListener('keydown', (e)=>{
+    if(e.code==='Tab'){ e.preventDefault(); const i=order.indexOf(activeTopic); setTopic(order[(i+1)%order.length]); }
+    if(e.code==='Space'){
+      e.preventDefault();
+      const btn = document.querySelector('.panel.active .controls .btn');
+      if(btn) btn.click();
+    }
+  });
+
+  /* ---------- folder sub-tabs (Fórmulas / Gráficos) inside each topic ---------- */
+  document.querySelectorAll('.folder-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const infoCol = btn.closest('.info-col');
+      if(!infoCol) return;
+      infoCol.querySelectorAll('.folder-tab').forEach(b=>b.classList.toggle('active', b===btn));
+      const sub = btn.dataset.sub;
+      infoCol.querySelectorAll('.sub-view').forEach(v=>v.classList.toggle('active', v.dataset.subView===sub));
+    });
+  });
+
+  /* =========================================================
+     1ª LEI · INÉRCIA
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('in-canvas');
+    const gGraph = document.getElementById('in-graph');
+    const gGraphF = document.getElementById('in-graph-F');
+    const mSlider = document.getElementById('in-m');
+    const mVal = document.getElementById('in-m-val');
+    const impulsoBtn = document.getElementById('in-impulso');
+    const freioBtn = document.getElementById('in-freio');
+    const resetBtn = document.getElementById('in-reset');
+    const DP = 6;          // impulso de cada empurrão (kg·m/s)
+    const PULSE = 0.35;    // duração da força (s)
+
+    let m = parseFloat(mSlider.value);
+    let v = 0, pos = 0, t = 0;
+    let pulseT = 0, pulseF = 0, force = 0;
+    let history = [], histF = [];
+
+    function reset(){ v=0; pos=0; t=0; history=[]; histF=[]; pulseT=0; pulseF=0; force=0; }
+    mSlider.addEventListener('input', ()=>{ m=parseFloat(mSlider.value); mVal.textContent=m.toFixed(1)+' kg'; });
+    impulsoBtn.addEventListener('click', ()=>{ pulseT = PULSE; pulseF = DP/PULSE; });
+    freioBtn.addEventListener('click', ()=>{ if(Math.abs(v) > 0.05){ pulseT = PULSE; pulseF = -m*v/PULSE; } });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      t += dt;
+      if(pulseT > 0){
+        const dtp = Math.min(dt, pulseT);
+        force = pulseF;
+        v += (force/m)*dtp;
+        pulseT = Math.max(0, pulseT - dtp);
+      } else { force = 0; }
+      const acting = Math.abs(force) > 0.01;
+      if(!acting && Math.abs(v) < 0.02) v = 0;
+      pos += v*dt;
+
+      document.getElementById('in-mread').textContent = m.toFixed(1)+' kg';
+      document.getElementById('in-v').textContent = v.toFixed(1)+' m/s';
+      document.getElementById('in-F').textContent = (acting ? force : 0).toFixed(1)+' N';
+      document.getElementById('in-estado').textContent = Math.abs(v)<0.05 ? 'repouso' : 'MRU (v constante)';
+      history.push({x:t, y:v}); histF.push({x:t, y:acting ? force : 0});
+      while(history.length && history[0].x < t-14){ history.shift(); histF.shift(); }
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const midY = h*0.55;
+      ctx.strokeStyle = '#26323b'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(20,midY); ctx.lineTo(w-20,midY); ctx.stroke();
+      const L = 50;
+      const px = (val)=> 20 + ( (val + L) / (2*L) ) * (w-40);
+      for(let mm=-L; mm<=L; mm+=10){
+        const x = px(mm);
+        ctx.strokeStyle = '#2b3843'; ctx.beginPath(); ctx.moveTo(x,midY-6); ctx.lineTo(x,midY+6); ctx.stroke();
+        if(mm%20===0){ ctx.fillStyle='#5b6a76'; ctx.font='10px monospace'; ctx.textAlign='center'; ctx.fillText(mm+'m', x, midY+20); }
+      }
+      let wrapped = pos;
+      while(wrapped>L) wrapped -= 2*L;
+      while(wrapped<-L) wrapped += 2*L;
+      const ox = px(wrapped);
+      ctx.save();
+      ctx.shadowColor = acting ? 'rgba(255,180,84,.8)' : 'rgba(76,230,162,.7)'; ctx.shadowBlur=14;
+      ctx.fillStyle = acting ? '#ffb454' : '#4ce6a2';
+      ctx.beginPath(); ctx.arc(ox, midY, 10, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle='#0b1013'; ctx.font='bold 10px monospace'; ctx.textAlign='center';
+      ctx.fillText('m', ox, midY+4);
+      if(Math.abs(v)>0.05){
+        const vx = ox + Math.sign(v)*Math.min(50,Math.abs(v)*8);
+        drawArrow(ctx, ox, midY-26, vx, midY-26, '#6fb8ff', 2.5);
+        ctx.fillStyle='#6fb8ff'; ctx.font='11px monospace'; ctx.textAlign='left';
+        ctx.fillText('v', Math.max(ox,vx)+6, midY-22);
+      }
+      if(acting){
+        const dir = Math.sign(force);
+        const len = Math.min(70, Math.abs(force)*2.6);
+        drawArrow(ctx, ox - dir*(14+len), midY, ox - dir*14, midY, '#ffb454', 3);
+        ctx.fillStyle='#ffb454'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+        ctx.fillText('F = '+force.toFixed(1)+' N', ox, midY-42);
+      } else {
+        ctx.fillStyle='#4f5c68'; ctx.font='11px monospace'; ctx.textAlign='center';
+        ctx.fillText('ΣF = 0', ox, midY-42);
+      }
+
+      let vpk = 4, fpk = 20;
+      history.forEach(p=>{ vpk = Math.max(vpk, Math.abs(p.y)+1); });
+      histF.forEach(p=>{ fpk = Math.max(fpk, Math.abs(p.y)*1.15); });
+      const xmin = Math.max(0,t-12), xmax = Math.max(12,t);
+      const gfit = fitCanvas(gGraph);
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:xmin, xmax:xmax, ymin:-vpk, ymax:vpk, points:history, color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'v', title:'v × t', ticks:true, fill:false});
+      const gffit = fitCanvas(gGraphF);
+      plot(gffit.ctx, gffit.w, gffit.h, {xmin:xmin, xmax:xmax, ymin:-fpk, ymax:fpk, points:histF, color:'rgba(255,180,84,1)', xlabel:'t(s)', ylabel:'ΣF', title:'ΣF × t', ticks:true, fill:false});
+    }
+    window.__in_draw = draw;
+  })();
+
+  /* =========================================================
+     2ª LEI · F = M.A
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('pfd-canvas');
+    const gV = document.getElementById('pfd-graph-v');
+    const gS = document.getElementById('pfd-graph-s');
+    const gF = document.getElementById('pfd-graph-F');
+    const gFa = document.getElementById('pfd-graph-Fa');
+    const FSlider = document.getElementById('pfd-F');
+    const mSlider = document.getElementById('pfd-m');
+    const v0Slider = document.getElementById('pfd-v0');
+    const FVal = document.getElementById('pfd-F-val');
+    const mVal = document.getElementById('pfd-m-val');
+    const v0Val = document.getElementById('pfd-v0-val');
+    const playBtn = document.getElementById('pfd-play');
+    const resetBtn = document.getElementById('pfd-reset');
+
+    let F = parseFloat(FSlider.value), m = parseFloat(mSlider.value), v0 = parseFloat(v0Slider.value);
+    let t = 0, playing = true;
+    const TMAX = 6;
+    let history = [];
+
+    function reset(){ t=0; history=[]; }
+    FSlider.addEventListener('input', ()=>{ F=parseFloat(FSlider.value); FVal.textContent=F.toFixed(0)+' N'; reset(); });
+    mSlider.addEventListener('input', ()=>{ m=parseFloat(mSlider.value); mVal.textContent=m.toFixed(1)+' kg'; reset(); });
+    v0Slider.addEventListener('input', ()=>{ v0=parseFloat(v0Slider.value); v0Val.textContent=v0.toFixed(1)+' m/s'; reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing){ t+=dt; if(t>TMAX) reset(); }
+      const a = F/m;
+      const v = v0 + a*t;
+      const s = v0*t + 0.5*a*t*t;
+      document.getElementById('pfd-Fread').textContent = F.toFixed(0)+' N';
+      document.getElementById('pfd-mread').textContent = m.toFixed(1)+' kg';
+      document.getElementById('pfd-a').textContent = a.toFixed(2)+' m/s²';
+      document.getElementById('pfd-v').textContent = v.toFixed(1)+' m/s';
+      const regime = (Math.abs(v)<0.05) ? 'transição' : (Math.sign(v)===Math.sign(a) ? 'acelerado' : 'retardado');
+      document.getElementById('pfd-regime').textContent = regime;
+      history.push({x:t,y:s});
+      if(history.length>600) history.shift();
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const midY = h*0.55;
+      ctx.strokeStyle = '#26323b'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(20,midY); ctx.lineTo(w-20,midY); ctx.stroke();
+      let smax = 0;
+      for(let tt=0; tt<=TMAX; tt+=0.2){ const ss = v0*tt+0.5*a*tt*tt; if(Math.abs(ss)>smax) smax=Math.abs(ss); }
+      smax = Math.max(smax, 5);
+      const px = (val)=> 20 + ((val+smax)/(2*smax))*(w-40);
+      for(let mm=-Math.round(smax); mm<=Math.round(smax); mm+=Math.max(1,Math.round(smax/5))){
+        const x=px(mm);
+        ctx.strokeStyle='#2b3843'; ctx.beginPath(); ctx.moveTo(x,midY-6); ctx.lineTo(x,midY+6); ctx.stroke();
+        ctx.fillStyle='#5b6a76'; ctx.font='10px monospace'; ctx.textAlign='center'; ctx.fillText(mm+'m', x, midY+20);
+      }
+      const ox = px(Math.max(-smax,Math.min(smax,s)));
+      ctx.save();
+      ctx.shadowColor='rgba(76,230,162,.7)'; ctx.shadowBlur=14;
+      ctx.fillStyle='#4ce6a2';
+      ctx.beginPath(); ctx.arc(ox,midY,9,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      const vx = ox + Math.sign(v||1)*Math.min(50,Math.abs(v)*6);
+      drawArrow(ctx, ox, midY-22, vx, midY-22, '#6fb8ff', 2.5);
+      const Fx = ox + Math.sign(F||1)*Math.min(46,Math.abs(F)*2.2);
+      drawArrow(ctx, ox, midY+30, Fx, midY+30, '#ffb454', 2.5);
+      const ax = ox + Math.sign(a||1)*Math.min(40,Math.abs(a)*8);
+      drawArrow(ctx, ox, midY+48, ax, midY+48, '#ff7a7a', 2.5);
+      ctx.font='11px monospace'; ctx.textAlign='left';
+      ctx.fillStyle='#6fb8ff'; ctx.fillText('v', Math.max(ox,vx)+6, midY-18);
+      ctx.fillStyle='#ffb454'; ctx.fillText('F', Math.max(ox,Fx)+6, midY+34);
+      ctx.fillStyle='#ff7a7a'; ctx.fillText('a', Math.max(ox,ax)+6, midY+52);
+
+      const gvFit = fitCanvas(gV);
+      const vmax = Math.max(Math.abs(v0+a*TMAX), Math.abs(v0), 3)+1;
+      plot(gvFit.ctx, gvFit.w, gvFit.h, {xmin:0,xmax:TMAX,ymin:-vmax,ymax:vmax, points:[{x:0,y:v0},{x:t,y:v}], color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'v', title:'v × t', fill:false});
+      const gsFit = fitCanvas(gS);
+      plot(gsFit.ctx, gsFit.w, gsFit.h, {xmin:0,xmax:TMAX,ymin:-smax,ymax:smax, points:history, color:'rgba(255,180,84,1)', xlabel:'t(s)', ylabel:'S', title:'S × t', fill:true});
+      const gFFit = fitCanvas(gF);
+      plotMulti(gFFit.ctx, gFFit.w, gFFit.h, {xmin:0,xmax:TMAX,ymin:-16,ymax:16, series:[{points:[{x:0,y:F},{x:t,y:F}], color:'rgba(111,184,255,1)', label:'F (N)'}], xlabel:'t(s)', ylabel:'F', title:'F × t', ticks:true});
+      const gFaFit = fitCanvas(gFa);
+      const xr = Math.max(10, 15/m), xl = Math.min(xr, 15/m);
+      plotMulti(gFaFit.ctx, gFaFit.w, gFaFit.h, {xmin:-xr,xmax:xr,ymin:-16,ymax:16, series:[
+        {points:[{x:-xl,y:-m*xl},{x:xl,y:m*xl}], color:'rgba(255,180,84,1)', label:'F = m·a', noMarker:true},
+        {points:[{x:a,y:F}], color:'rgba(255,122,122,1)', label:'agora'}], xlabel:'a', ylabel:'F', title:'F × a (inclin. = m)', ticks:true});
+    }
+    window.__pfd_draw = draw;
+  })();
+
+  /* =========================================================
+     3ª LEI · AÇÃO-REAÇÃO / BLOCOS EM CONTATO OU FIO
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('ar-canvas');
+    const gGraph = document.getElementById('ar-graph');
+    const gF = document.getElementById('ar-graph-F');
+    const gR = document.getElementById('ar-graph-R');
+    const btnContato = document.getElementById('ar-contato');
+    const btnFio = document.getElementById('ar-fio');
+    const title = document.getElementById('ar-formula-title');
+    const systemF = document.getElementById('ar-formula-system');
+    const internalF = document.getElementById('ar-formula-internal');
+    const internalLabel = document.getElementById('ar-internal-label');
+    const note = document.getElementById('ar-note');
+
+    const FSlider = document.getElementById('ar-F');
+    const mASlider = document.getElementById('ar-mA');
+    const mBSlider = document.getElementById('ar-mB');
+    const FVal = document.getElementById('ar-F-val');
+    const mAVal = document.getElementById('ar-mA-val');
+    const mBVal = document.getElementById('ar-mB-val');
+    const playBtn = document.getElementById('ar-play');
+    const resetBtn = document.getElementById('ar-reset');
+
+    let mode = 'contato';
+    let F = parseFloat(FSlider.value), mA = parseFloat(mASlider.value), mB = parseFloat(mBSlider.value);
+    let t = 0, playing = true;
+    const TMAX = 5;
+    let history = [];
+
+    function reset(){ t=0; history=[]; }
+    function setMode(m){
+      mode = m;
+      btnContato.classList.toggle('active', m==='contato');
+      btnFio.classList.toggle('active', m==='fio');
+      if(m==='contato'){
+        title.textContent = 'Blocos em contato';
+        internalF.innerHTML = '<span class="label">Força de contato (par ação-reação)</span>F\' = m<sub>B</sub> · a';
+        internalLabel.textContent = "F'";
+        note.innerHTML = 'Os dois blocos têm a <b>mesma aceleração</b> (estão em contato rígido). A força F empurra A, que empurra B através da força de contato F\' — e, pela 3ª Lei, B empurra A de volta com -F\'.';
+      } else {
+        title.textContent = 'Blocos ligados por fio';
+        internalF.innerHTML = '<span class="label">Tração no fio ideal</span>T = m<sub>A</sub> · a';
+        internalLabel.textContent = 'T';
+        note.innerHTML = 'F é aplicada em B, que puxa A através do fio ideal (sem massa, inextensível). A tração <b>T</b> é a mesma em toda a extensão do fio — e, pela 3ª Lei, A puxa o fio de volta com -T.';
+      }
+      reset();
+    }
+    btnContato.addEventListener('click', ()=>setMode('contato'));
+    btnFio.addEventListener('click', ()=>setMode('fio'));
+
+    FSlider.addEventListener('input', ()=>{ F=parseFloat(FSlider.value); FVal.textContent=F.toFixed(0)+' N'; reset(); });
+    mASlider.addEventListener('input', ()=>{ mA=parseFloat(mASlider.value); mAVal.textContent=mA.toFixed(1)+' kg'; reset(); });
+    mBSlider.addEventListener('input', ()=>{ mB=parseFloat(mBSlider.value); mBVal.textContent=mB.toFixed(1)+' kg'; reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing){ t+=dt; if(t>TMAX) reset(); }
+      const a = F/(mA+mB);
+      const v = a*t;
+      const s = 0.5*a*t*t;
+      const internal = mode==='contato' ? mB*a : mA*a;
+
+      document.getElementById('ar-a').textContent = a.toFixed(2)+' m/s²';
+      document.getElementById('ar-internal').textContent = internal.toFixed(2)+' N';
+      document.getElementById('ar-v').textContent = v.toFixed(1)+' m/s';
+      document.getElementById('ar-t').textContent = t.toFixed(1)+' s';
+      history.push({x:t,y:v});
+      if(history.length>600) history.shift();
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const midY = h*0.55;
+      ctx.strokeStyle = '#26323b'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(20,midY); ctx.lineTo(w-20,midY); ctx.stroke();
+
+      let smax = 0.5*a*TMAX*TMAX; smax = Math.max(smax, 5);
+      const px = (val)=> 30 + (val/smax)*(w-120);
+      const sOnTrack = s % smax;
+      const baseX = px(sOnTrack);
+      const gap = mode==='fio' ? 26 : 0;
+      const blockW = 34;
+      const ax_ = baseX, bx_ = baseX + blockW + gap;
+
+      ctx.save();
+      ctx.shadowColor='rgba(76,230,162,.6)'; ctx.shadowBlur=10;
+      ctx.fillStyle = '#4ce6a2';
+      ctx.fillRect(ax_, midY-16, blockW, 32);
+      ctx.restore();
+      ctx.save();
+      ctx.shadowColor='rgba(255,180,84,.6)'; ctx.shadowBlur=10;
+      ctx.fillStyle = '#ffb454';
+      ctx.fillRect(bx_, midY-16, blockW, 32);
+      ctx.restore();
+      ctx.fillStyle='#0b1013'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
+      ctx.fillText('A', ax_+blockW/2, midY+4);
+      ctx.fillText('B', bx_+blockW/2, midY+4);
+
+      if(mode==='fio'){
+        ctx.strokeStyle = '#4f5c68'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(ax_+blockW, midY); ctx.lineTo(bx_, midY); ctx.stroke();
+      }
+
+      // F applied: contato -> on A (left side); fio -> on B (right side)
+      if(mode==='contato'){
+        drawArrow(ctx, ax_-34, midY, ax_-4, midY, '#6fb8ff', 2.5);
+        ctx.fillStyle='#6fb8ff'; ctx.font='11px monospace'; ctx.textAlign='center';
+        ctx.fillText('F', ax_-38, midY+4);
+        // internal force pair at interface
+        drawArrow(ctx, ax_+blockW-2, midY-26, ax_+blockW+16, midY-26, '#ff7a7a', 2);
+        drawArrow(ctx, bx_+2, midY-26, bx_-16, midY-26, '#ff7a7a', 2);
+        ctx.fillStyle='#ff7a7a'; ctx.textAlign='center';
+        ctx.fillText("F' / -F'", (ax_+blockW+bx_)/2, midY-32);
+      } else {
+        drawArrow(ctx, bx_+blockW+4, midY, bx_+blockW+34, midY, '#6fb8ff', 2.5);
+        ctx.fillStyle='#6fb8ff'; ctx.font='11px monospace'; ctx.textAlign='center';
+        ctx.fillText('F', bx_+blockW+38, midY+4);
+        ctx.fillStyle='#ff7a7a';
+        ctx.fillText('T', (ax_+blockW+bx_)/2, midY-10);
+      }
+
+      const gfit = fitCanvas(gGraph);
+      const vmax = Math.max(a*TMAX, 2)+1;
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:0,xmax:TMAX,ymin:0,ymax:vmax, points: history.length?history:[{x:0,y:0}], color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'v', title:'v × t', fill:true});
+      const fmaxA = F*1.15;
+      const intLabel = mode==='contato' ? "F'" : 'T';
+      const gfF = fitCanvas(gF);
+      plotMulti(gfF.ctx, gfF.w, gfF.h, {xmin:0,xmax:TMAX,ymin:0,ymax:fmaxA, series:[
+        {points:[{x:0,y:F},{x:t,y:F}], color:'rgba(111,184,255,1)', label:'F'},
+        {points:[{x:0,y:internal},{x:t,y:internal}], color:'rgba(255,122,122,1)', label:intLabel}], xlabel:'t(s)', ylabel:'F', title:'Forças × t', ticks:true});
+      const gfR = fitCanvas(gR);
+      plotMulti(gfR.ctx, gfR.w, gfR.h, {xmin:0,xmax:TMAX,ymin:0,ymax:fmaxA, series:[
+        {points:[{x:0,y:mA*a},{x:t,y:mA*a}], color:'rgba(76,230,162,1)', label:'ΣF A'},
+        {points:[{x:0,y:mB*a},{x:t,y:mB*a}], color:'rgba(255,180,84,1)', label:'ΣF B'}], xlabel:'t(s)', ylabel:'ΣF', title:'Resultantes × t', ticks:true});
+    }
+    window.__ar_draw = draw;
+  })();
+
+  /* =========================================================
+     LEI DE HOOKE
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('ho-canvas');
+    const gGraph = document.getElementById('ho-graph');
+    const gT = document.getElementById('ho-graph-t');
+    const KSlider = document.getElementById('ho-K');
+    const mSlider = document.getElementById('ho-m');
+    const KVal = document.getElementById('ho-K-val');
+    const mVal = document.getElementById('ho-m-val');
+    const playBtn = document.getElementById('ho-play');
+    const resetBtn = document.getElementById('ho-reset');
+
+    let K = parseFloat(KSlider.value), m = parseFloat(mSlider.value);
+    let t = 0, playing = true;
+    const OMEGA_VIS = 1.4; // puramente visual: oscilação de aproximação ao equilíbrio
+
+    let hF = [];
+    function reset(){ t=0; hF=[]; }
+    KSlider.addEventListener('input', ()=>{ K=parseFloat(KSlider.value); KVal.textContent=K.toFixed(0)+' N/m'; reset(); });
+    mSlider.addEventListener('input', ()=>{ m=parseFloat(mSlider.value); mVal.textContent=m.toFixed(1)+' kg'; reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing){ t += dt; if(t>6){ t=0; hF=[]; } }
+      const P = m*G;
+      const dxEq = P/K; // metros
+      // animação de amortecimento até o equilíbrio (puramente visual)
+      const damp = Math.exp(-1.6*t);
+      const dx = dxEq * (1 - damp*Math.cos(OMEGA_VIS*6*t));
+      if(playing) hF.push({x:t, y:K*dx});
+
+      document.getElementById('ho-Kread').textContent = K.toFixed(0)+' N/m';
+      document.getElementById('ho-mread').textContent = m.toFixed(1)+' kg';
+      document.getElementById('ho-P').textContent = P.toFixed(1)+' N';
+      document.getElementById('ho-dx').textContent = (dxEq*100).toFixed(1)+' cm';
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const topY = 24, ceilX1 = w/2-70, ceilX2 = w/2+70;
+      ctx.strokeStyle='#4f5c68'; ctx.lineWidth=6;
+      ctx.beginPath(); ctx.moveTo(ceilX1,topY); ctx.lineTo(ceilX2,topY); ctx.stroke();
+
+      const scale = Math.min(220, (h-140)/Math.max(0.02,dxEq+0.05));
+      const restLen = 70;
+      const springBottom = topY + restLen + dx*scale;
+      // spring as zigzag
+      const cx = w/2;
+      ctx.strokeStyle = '#4ce6a2'; ctx.lineWidth=2.5;
+      ctx.shadowColor='rgba(76,230,162,.5)'; ctx.shadowBlur=6;
+      ctx.beginPath();
+      const coils = 8;
+      const segH = (springBottom-topY)/coils;
+      ctx.moveTo(cx, topY);
+      for(let i=1;i<coils;i++){
+        const yy = topY + i*segH;
+        const xx = cx + (i%2===0 ? 18 : -18);
+        ctx.lineTo(xx, yy);
+      }
+      ctx.lineTo(cx, springBottom);
+      ctx.stroke();
+      ctx.shadowBlur=0;
+
+      // block
+      const blockSize = 30 + Math.min(20, m*3);
+      ctx.save();
+      ctx.shadowColor='rgba(255,180,84,.6)'; ctx.shadowBlur=10;
+      ctx.fillStyle='#ffb454';
+      ctx.fillRect(cx-blockSize/2, springBottom, blockSize, blockSize);
+      ctx.restore();
+      ctx.fillStyle='#0b1013'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
+      ctx.fillText('m', cx, springBottom+blockSize/2+4);
+
+      // P arrow
+      drawArrow(ctx, cx+blockSize/2+10, springBottom+blockSize/2, cx+blockSize/2+10, springBottom+blockSize/2+36, '#ff7a7a', 2.2);
+      ctx.fillStyle='#ff7a7a'; ctx.font='11px monospace'; ctx.textAlign='left';
+      ctx.fillText('P', cx+blockSize/2+16, springBottom+blockSize/2+28);
+      // F elastic arrow
+      drawArrow(ctx, cx-blockSize/2-10, springBottom, cx-blockSize/2-10, topY+restLen, '#6fb8ff', 2.2);
+      ctx.fillStyle='#6fb8ff'; ctx.textAlign='right';
+      ctx.fillText('F', cx-blockSize/2-16, (springBottom+topY+restLen)/2);
+
+      const gfit = fitCanvas(gGraph);
+      const xmax = dxEq*1.3+0.02;
+      const pts = [];
+      const steps=30;
+      for(let i=0;i<=steps;i++){ const xx = xmax*i/steps; pts.push({x:xx, y:K*xx}); }
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:0,xmax:xmax, ymin:0, ymax:K*xmax+5, points:pts, color:'rgba(76,230,162,1)', xlabel:'Δx(m)', ylabel:'F', title:'F × Δx', fill:true});
+      const gtF = fitCanvas(gT);
+      plotMulti(gtF.ctx, gtF.w, gtF.h, {xmin:0,xmax:6,ymin:0,ymax:P*2.1, series:[
+        {points:[{x:0,y:P},{x:6,y:P}], color:'rgba(255,122,122,1)', label:'P', noMarker:true},
+        {points:hF.length>1?hF:[{x:0,y:0}], color:'rgba(111,184,255,1)', label:'F elástica'}], xlabel:'t(s)', ylabel:'F', title:'Forças × t', ticks:true});
+    }
+    window.__ho_draw = draw;
+  })();
+
+  /* =========================================================
+     MÁQUINA DE ATWOOD / ELEVADOR
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('at-canvas');
+    const gGraph = document.getElementById('at-graph');
+    const gGraphF = document.getElementById('at-graph-F');
+    const graphTitle = document.getElementById('at-graph-title');
+    const graphTag = document.getElementById('at-graph-tag');
+    const title = document.getElementById('at-title');
+    const btnAtwood = document.getElementById('at-atwood');
+    const btnElevador = document.getElementById('at-elevador');
+    const ctrlAtwood = document.getElementById('at-controls-atwood');
+    const ctrlElevador = document.getElementById('at-controls-elevador');
+    const formulaBody = document.getElementById('at-formula-body');
+
+    const mASlider = document.getElementById('at-mA');
+    const mBSlider = document.getElementById('at-mB');
+    const mAVal = document.getElementById('at-mA-val');
+    const mBVal = document.getElementById('at-mB-val');
+    const playBtn1 = document.getElementById('at-play');
+    const resetBtn1 = document.getElementById('at-reset');
+
+    const mpSlider = document.getElementById('at-mp');
+    const aeSlider = document.getElementById('at-ae');
+    const mpVal = document.getElementById('at-mp-val');
+    const aeVal = document.getElementById('at-ae-val');
+    const playBtn2 = document.getElementById('at-play2');
+    const resetBtn2 = document.getElementById('at-reset2');
+
+    let mode = 'atwood';
+    let mA = parseFloat(mASlider.value), mB = parseFloat(mBSlider.value);
+    let mp = parseFloat(mpSlider.value), ae = parseFloat(aeSlider.value);
+    let t = 0, playing = true;
+    let history = [];
+
+    function setFormulas(){
+      if(mode==='atwood'){
+        formulaBody.innerHTML = `
+          <div class="card-head"><h2>Máquina de Atwood</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">PFD(A)</span>T − P<sub>A</sub> = m<sub>A</sub> · a</div>
+            <div class="formula"><span class="label">PFD(B)</span>P<sub>B</sub> − T = m<sub>B</sub> · a</div>
+            <div class="formula"><span class="label">Aceleração do sistema</span>a = (m<sub>B</sub> − m<sub>A</sub>)·g / (m<sub>A</sub> + m<sub>B</sub>)</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">a</span><span class="v" id="at-a">0.00 m/s²</span></div>
+              <div class="readout"><span class="k">T</span><span class="v" id="at-T">0.0 N</span></div>
+              <div class="readout"><span class="k">t</span><span class="v" id="at-t">0.0 s</span></div>
+            </div>
+            <p class="note">O bloco mais pesado desce e o mais leve sobe, ambos com a <b>mesma aceleração</b> (presos pelo fio ideal). A tração no fio OC que sustenta a polia é T' = 2T.</p>
+          </div>`;
+      } else {
+        formulaBody.innerHTML = `
+          <div class="card-head"><h2>Problema do Elevador</h2></div>
+          <div class="formula-body">
+            <div class="formula"><span class="label">Subindo (acelerando p/ cima)</span>P<sub>ap</sub> = P<sub>r</sub> + m·a</div>
+            <div class="formula"><span class="label">Descendo (acelerando p/ baixo)</span>P<sub>ap</sub> = P<sub>r</sub> − m·a</div>
+            <div class="readout-row">
+              <div class="readout"><span class="k">P real</span><span class="v" id="at-Preal">700.0 N</span></div>
+              <div class="readout"><span class="k">P aparente</span><span class="v" id="at-Pap">840.0 N</span></div>
+              <div class="readout"><span class="k">a</span><span class="v" id="at-aread">2.0 m/s²</span></div>
+            </div>
+            <p class="note">O peso <b>aparente</b> (o que a balança marca) muda com a aceleração do elevador: aumenta quando acelera para cima, diminui quando acelera para baixo. Em a = 0, P<sub>ap</sub> = P<sub>real</sub>.</p>
+          </div>`;
+      }
+    }
+
+    function reset(){ t=0; history=[]; }
+    function setMode(m){
+      mode = m;
+      btnAtwood.classList.toggle('active', m==='atwood');
+      btnElevador.classList.toggle('active', m==='elevador');
+      ctrlAtwood.style.display = m==='atwood' ? 'flex' : 'none';
+      ctrlElevador.style.display = m==='elevador' ? 'flex' : 'none';
+      title.textContent = m==='atwood' ? 'Máquina de Atwood' : 'Problema do Elevador';
+      graphTitle.textContent = m==='atwood' ? 'Gráfico' : 'Gráfico';
+      graphTag.textContent = m==='atwood' ? 'v × t · forças × t' : 'Pap × a · forças × t';
+      setFormulas();
+      reset();
+    }
+    btnAtwood.addEventListener('click', ()=>setMode('atwood'));
+    btnElevador.addEventListener('click', ()=>setMode('elevador'));
+    setFormulas();
+
+    mASlider.addEventListener('input', ()=>{ mA=parseFloat(mASlider.value); mAVal.textContent=mA.toFixed(1)+' kg'; reset(); });
+    mBSlider.addEventListener('input', ()=>{ mB=parseFloat(mBSlider.value); mBVal.textContent=mB.toFixed(1)+' kg'; reset(); });
+    mpSlider.addEventListener('input', ()=>{ mp=parseFloat(mpSlider.value); mpVal.textContent=mp.toFixed(0)+' kg'; });
+    aeSlider.addEventListener('input', ()=>{ ae=parseFloat(aeSlider.value); aeVal.textContent=ae.toFixed(1)+' m/s²'; reset(); });
+    [playBtn1,playBtn2].forEach(b=>b.addEventListener('click', ()=>{ playing=!playing; const lbl=playing?'⏸ Pausar':'▶ Continuar'; playBtn1.textContent=lbl; playBtn2.textContent=lbl; }));
+    [resetBtn1,resetBtn2].forEach(b=>b.addEventListener('click', reset));
+
+    function draw(dt){
+      if(playing) t += dt;
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+
+      if(mode==='atwood'){
+        const a = (mB-mA)*G/(mA+mB);
+        const T = mA*(G+a);
+        const TMAX = 3.5;
+        if(t>TMAX) t = 0;
+        let s = 0.5*a*t*t;
+        const aEl = document.getElementById('at-a'), TEl = document.getElementById('at-T'), tEl=document.getElementById('at-t');
+        if(aEl){ aEl.textContent=a.toFixed(2)+' m/s²'; TEl.textContent=T.toFixed(1)+' N'; tEl.textContent=t.toFixed(1)+' s'; }
+        history.push({x:t, y:Math.abs(a)*t});
+        if(t===0) history=[];
+        if(history.length>600) history.shift();
+
+        const cx = w/2, topY = 26, ropeHalf = 60;
+        ctx.strokeStyle='#4f5c68'; ctx.lineWidth=6;
+        ctx.beginPath(); ctx.moveTo(cx-100,topY); ctx.lineTo(cx+100,topY); ctx.stroke();
+        ctx.fillStyle='#232d35'; ctx.beginPath(); ctx.arc(cx,topY+18,14,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#3a4a56'; ctx.lineWidth=2; ctx.stroke();
+        const maxDisp = Math.min(70, Math.max(10, Math.abs(s)*40));
+        const sClamped = Math.max(-maxDisp/40, Math.min(maxDisp/40, s));
+        const yA = topY+18+ropeHalf - sClamped*40;
+        const yB = topY+18+ropeHalf + sClamped*40;
+        const leftX = cx-55, rightX = cx+55;
+        ctx.strokeStyle='#4f5c68'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(leftX,topY+18); ctx.lineTo(leftX,yA); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(rightX,topY+18); ctx.lineTo(rightX,yB); ctx.stroke();
+        const bs = 26;
+        ctx.save(); ctx.shadowColor='rgba(76,230,162,.6)'; ctx.shadowBlur=10; ctx.fillStyle='#4ce6a2';
+        ctx.fillRect(leftX-bs/2, yA, bs, bs); ctx.restore();
+        ctx.save(); ctx.shadowColor='rgba(255,180,84,.6)'; ctx.shadowBlur=10; ctx.fillStyle='#ffb454';
+        ctx.fillRect(rightX-bs/2, yB, bs, bs); ctx.restore();
+        ctx.fillStyle='#0b1013'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
+        ctx.fillText('A', leftX, yA+bs/2+4);
+        ctx.fillText('B', rightX, yB+bs/2+4);
+        ctx.fillStyle='#5b6a76'; ctx.font='10px monospace';
+        ctx.fillText('mA='+mA.toFixed(1), leftX, yA+bs+16);
+        ctx.fillText('mB='+mB.toFixed(1), rightX, yB+bs+16);
+
+        const gfit = fitCanvas(gGraph);
+        const vmax = Math.max(Math.abs(a)*TMAX,1)+1;
+        plot(gfit.ctx, gfit.w, gfit.h, {xmin:0,xmax:TMAX,ymin:0,ymax:vmax, points: history.length?history:[{x:0,y:0}], color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'|v|', title:'v × t', fill:true});
+        const gfF = fitCanvas(gGraphF);
+        const PA = mA*G, PB = mB*G;
+        plotMulti(gfF.ctx, gfF.w, gfF.h, {xmin:0,xmax:TMAX,ymin:0,ymax:Math.max(PA,PB)*1.2, series:[
+          {points:[{x:0,y:PA},{x:t,y:PA}], color:'rgba(76,230,162,1)', label:'PA'},
+          {points:[{x:0,y:PB},{x:t,y:PB}], color:'rgba(255,180,84,1)', label:'PB'},
+          {points:[{x:0,y:T},{x:t,y:T}], color:'rgba(111,184,255,1)', label:'T'}], xlabel:'t(s)', ylabel:'F', title:'Forças × t', ticks:true});
+      } else {
+        const Preal = mp*G;
+        const Pap = mp*(G+ae);
+        const PrealEl=document.getElementById('at-Preal'), PapEl=document.getElementById('at-Pap'), aEl=document.getElementById('at-aread');
+        if(PrealEl){ PrealEl.textContent=Preal.toFixed(1)+' N'; PapEl.textContent=Pap.toFixed(1)+' N'; aEl.textContent=ae.toFixed(1)+' m/s²'; }
+
+        const TMAX2 = 3;
+        if(t>TMAX2) t=0;
+        let s = 0.5*ae*t*t;
+        s = Math.max(-40, Math.min(40, s*10));
+
+        const carW = 120, carH = 170;
+        const cx = w/2, cy = h/2 - s;
+        ctx.strokeStyle='#4f5c68'; ctx.lineWidth=3;
+        ctx.strokeRect(cx-carW/2, cy-carH/2, carW, carH);
+        // shaft guide lines
+        ctx.strokeStyle='#1c252c'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(cx-carW/2-14,0); ctx.lineTo(cx-carW/2-14,h); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+carW/2+14,0); ctx.lineTo(cx+carW/2+14,h); ctx.stroke();
+        // person + scale
+        const fy = cy+carH/2-16;
+        ctx.strokeStyle='#ffb454'; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.arc(cx, fy-46, 9, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx,fy-37); ctx.lineTo(cx,fy-14); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx,fy-30); ctx.lineTo(cx-12,fy-14); ctx.moveTo(cx,fy-30); ctx.lineTo(cx+12,fy-14); ctx.stroke();
+        ctx.fillStyle='#4ce6a2'; ctx.fillRect(cx-16,fy-4,32,8);
+        ctx.fillStyle='#0b1013'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+        // acceleration arrow
+        const dirY = ae>=0 ? -1 : 1;
+        drawArrow(ctx, cx+carW/2+28, cy, cx+carW/2+28, cy+dirY*Math.min(34,Math.abs(ae)*10+6), '#6fb8ff', 2.5);
+        ctx.fillStyle='#6fb8ff'; ctx.font='11px monospace'; ctx.textAlign='left';
+        ctx.fillText('a', cx+carW/2+34, cy);
+        ctx.fillStyle='#8695a3'; ctx.font='11px monospace'; ctx.textAlign='center';
+        ctx.fillText('balança: '+Pap.toFixed(0)+' N', cx, cy+carH/2+22);
+
+        const gfit = fitCanvas(gGraph);
+        const pts = [];
+        const aMinG=-4, steps=24;
+        for(let i=0;i<=steps;i++){
+          const aa = aMinG + (ae-aMinG)*i/steps;
+          pts.push({x:aa, y: mp*(G+aa)});
+        }
+        plot(gfit.ctx, gfit.w, gfit.h, {xmin:-4,xmax:4,ymin:0,ymax:mp*(G+4)+20, points:pts, color:'rgba(255,180,84,1)', xlabel:'a(m/s²)', ylabel:'Pap', title:'Pap × a', fill:true});
+        const gfF = fitCanvas(gGraphF);
+        plotMulti(gfF.ctx, gfF.w, gfF.h, {xmin:0,xmax:TMAX2,ymin:0,ymax:Math.max(Preal,Pap)*1.2, series:[
+          {points:[{x:0,y:Preal},{x:t,y:Preal}], color:'rgba(255,122,122,1)', label:'P real'},
+          {points:[{x:0,y:Pap},{x:t,y:Pap}], color:'rgba(255,180,84,1)', label:'P aparente'}], xlabel:'t(s)', ylabel:'F', title:'Forças × t', ticks:true});
+      }
+    }
+    window.__at_draw = draw;
+  })();
+
+  /* =========================================================
+     ATRITO ESTÁTICO E CINÉTICO
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('atr-canvas');
+    const gGraph = document.getElementById('atr-graph');
+    const gGraphF = document.getElementById('atr-graph-F');
+    const FSlider = document.getElementById('atr-F');
+    const mSlider = document.getElementById('atr-m');
+    const musSlider = document.getElementById('atr-mus');
+    const mukSlider = document.getElementById('atr-muk');
+    const FVal = document.getElementById('atr-F-val');
+    const mVal = document.getElementById('atr-m-val');
+    const musVal = document.getElementById('atr-mus-val');
+    const mukVal = document.getElementById('atr-muk-val');
+    const playBtn = document.getElementById('atr-play');
+    const resetBtn = document.getElementById('atr-reset');
+
+    let F = parseFloat(FSlider.value), m = parseFloat(mSlider.value);
+    let mus = parseFloat(musSlider.value), muk = parseFloat(mukSlider.value);
+    let t = 0, playing = true, v = 0, pos = 0;
+    let hF = [], hFat = [], hR = [];
+
+    function reset(){ t=0; v=0; pos=0; hF=[]; hFat=[]; hR=[]; }
+    FSlider.addEventListener('input', ()=>{ F=parseFloat(FSlider.value); FVal.textContent=F.toFixed(0)+' N'; });
+    mSlider.addEventListener('input', ()=>{ m=parseFloat(mSlider.value); mVal.textContent=m.toFixed(1)+' kg'; reset(); });
+    musSlider.addEventListener('input', ()=>{ mus=parseFloat(musSlider.value); musVal.textContent=mus.toFixed(2); reset(); });
+    mukSlider.addEventListener('input', ()=>{ muk=parseFloat(mukSlider.value); mukVal.textContent=muk.toFixed(2); reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing) t += dt;
+      const N = m*G;
+      const Fsmax = mus*N;
+      const Fk = muk*N;
+      let regime, Fat, a;
+      if(F <= Fsmax){
+        regime = 'estático'; Fat = F; a = 0; v = 0;
+      } else {
+        regime = 'cinético'; Fat = Fk; a = (F-Fk)/m;
+        if(playing){ v += a*dt; pos += v*dt; }
+      }
+      document.getElementById('atr-N').textContent = N.toFixed(1)+' N';
+      document.getElementById('atr-Fsmax').textContent = Fsmax.toFixed(1)+' N';
+      document.getElementById('atr-Fat').textContent = Fat.toFixed(1)+' N';
+      document.getElementById('atr-regime').textContent = regime;
+      if(playing){
+        hF.push({x:t,y:F}); hFat.push({x:t,y:Fat}); hR.push({x:t,y:F-Fat});
+        while(hF.length && hF[0].x < t-12){ hF.shift(); hFat.shift(); hR.shift(); }
+      }
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const groundY = h*0.6;
+      ctx.strokeStyle='#26323b'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(20,groundY); ctx.lineTo(w-20,groundY); ctx.stroke();
+      // hatching
+      ctx.strokeStyle='#1c252c'; ctx.lineWidth=1;
+      for(let x=20;x<w-20;x+=14){ ctx.beginPath(); ctx.moveTo(x,groundY); ctx.lineTo(x-8,groundY+10); ctx.stroke(); }
+
+      const L = 40; // metros visíveis cada lado
+      const px = (val)=> 20 + ((val+L)/(2*L))*(w-40);
+      let wrapped = pos;
+      while(wrapped>L) wrapped -= 2*L;
+      while(wrapped<-L) wrapped += 2*L;
+      const bx = px(wrapped);
+      const bs = 34;
+      ctx.save();
+      ctx.shadowColor = regime==='cinético' ? 'rgba(255,122,122,.6)' : 'rgba(76,230,162,.6)';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = regime==='cinético' ? '#ff7a7a' : '#4ce6a2';
+      ctx.fillRect(bx-bs/2, groundY-bs, bs, bs);
+      ctx.restore();
+      ctx.fillStyle='#0b1013'; ctx.font='bold 10px monospace'; ctx.textAlign='center';
+      ctx.fillText('m', bx, groundY-bs/2+4);
+
+      // F arrow
+      const Fx = bx + Math.min(60, F*2.5);
+      drawArrow(ctx, bx, groundY-bs/2, Fx, groundY-bs/2, '#6fb8ff', 2.5);
+      ctx.fillStyle='#6fb8ff'; ctx.font='11px monospace'; ctx.textAlign='left';
+      ctx.fillText('F', Fx+4, groundY-bs/2+4);
+      // Fat arrow (opposes)
+      const FatX = bx - Math.min(60, Fat*2.5);
+      drawArrow(ctx, bx, groundY-bs/2-16, FatX, groundY-bs/2-16, '#ffb454', 2.5);
+      ctx.fillStyle='#ffb454'; ctx.textAlign='right';
+      ctx.fillText('Fat', FatX-4, groundY-bs/2-12);
+      // N and P
+      drawArrow(ctx, bx, groundY-bs-6, bx, groundY-bs-30, '#8695a3', 2);
+      ctx.fillStyle='#8695a3'; ctx.font='10px monospace'; ctx.textAlign='center';
+      ctx.fillText('N', bx+12, groundY-bs-22);
+
+      const gfit = fitCanvas(gGraph);
+      const Fmax = 60;
+      const pts = [];
+      const steps = 40;
+      const fUpTo = Math.min(F, Fmax);
+      for(let i=0;i<=steps;i++){
+        const f = fUpTo*i/steps;
+        const fat = f<=Fsmax ? f : Fk;
+        pts.push({x:f, y:fat});
+      }
+      if(pts.length<2) pts.push({x:0,y:0});
+      const ymax = Math.max(Fsmax, Fk, F, 10)+5;
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:0,xmax:Fmax,ymin:0,ymax:ymax, points:pts, color:'rgba(76,230,162,1)', xlabel:'F(N)', ylabel:'Fat', title:'Fat × F', fill:true});
+      const gfF = fitCanvas(gGraphF);
+      const winS = Math.max(0,t-12);
+      let ymaxF = Math.max(10, Fsmax);
+      hF.forEach(p=>{ ymaxF = Math.max(ymaxF, p.y); });
+      plotMulti(gfF.ctx, gfF.w, gfF.h, {xmin:winS, xmax:winS+12, ymin:0, ymax:ymaxF*1.15, series:[
+        {points:hF, color:'rgba(111,184,255,1)', label:'F'},
+        {points:hFat, color:'rgba(255,180,84,1)', label:'Fat'},
+        {points:hR, color:'rgba(255,122,122,1)', label:'FR'}], xlabel:'t(s)', ylabel:'F', title:'Forças × t', ticks:true});
+    }
+    window.__atr_draw = draw;
+  })();
+
+  /* =========================================================
+     PLANO INCLINADO (descer ou subir)
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('pl-canvas');
+    const gGraph = document.getElementById('pl-graph');
+    const gGraphF = document.getElementById('pl-graph-F');
+    const gGraphN = document.getElementById('pl-graph-N');
+    const graphTag = document.getElementById('pl-graph-tag');
+    const btnDesce = document.getElementById('pl-desce');
+    const btnSobe = document.getElementById('pl-sobe');
+    const v0Group = document.getElementById('pl-v0-group');
+    const thetaSlider = document.getElementById('pl-theta');
+    const mSlider = document.getElementById('pl-m');
+    const muSlider = document.getElementById('pl-mu');
+    const v0Slider = document.getElementById('pl-v0');
+    const thetaVal = document.getElementById('pl-theta-val');
+    const mVal = document.getElementById('pl-m-val');
+    const muVal = document.getElementById('pl-mu-val');
+    const v0Val = document.getElementById('pl-v0-val');
+    const playBtn = document.getElementById('pl-play');
+    const resetBtn = document.getElementById('pl-reset');
+
+    const LM = 12;      // comprimento do plano (m)
+    const EPS = 1e-3;
+    let mode = 'desce';
+    let thetaDeg = parseFloat(thetaSlider.value), m = parseFloat(mSlider.value);
+    let mu = parseFloat(muSlider.value), v0 = parseFloat(v0Slider.value);
+    let x = 0, v = 0, t = 0;          // x: distância à base ao longo do plano; v > 0 = subindo
+    let playing = true, hasMoved = false, restTimer = 0;
+    let history = [], hF = [], hFat = [], hR = [];
+
+    function init(){
+      t = 0; history = []; hF = []; hFat = []; hR = []; hasMoved = false; restTimer = 0;
+      if(mode==='desce'){ x = LM*0.85; v = 0; }
+      else { x = LM*0.06; v = v0; }
+    }
+    function setMode(md){
+      mode = md;
+      btnDesce.classList.toggle('active', md==='desce');
+      btnSobe.classList.toggle('active', md==='sobe');
+      v0Group.style.display = md==='sobe' ? 'flex' : 'none';
+      graphTag.textContent = md==='sobe' ? 'v × t (+ = subindo)' : 'v × t (+ = descendo)';
+      init();
+    }
+    btnDesce.addEventListener('click', ()=>setMode('desce'));
+    btnSobe.addEventListener('click', ()=>setMode('sobe'));
+    thetaSlider.addEventListener('input', ()=>{ thetaDeg=parseFloat(thetaSlider.value); thetaVal.textContent=thetaDeg.toFixed(0)+'°'; init(); });
+    mSlider.addEventListener('input', ()=>{ m=parseFloat(mSlider.value); mVal.textContent=m.toFixed(1)+' kg'; });
+    muSlider.addEventListener('input', ()=>{ mu=parseFloat(muSlider.value); muVal.textContent=mu.toFixed(2); init(); });
+    v0Slider.addEventListener('input', ()=>{ v0=parseFloat(v0Slider.value); v0Val.textContent=v0.toFixed(1)+' m/s'; init(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', init);
+    init();
+
+    // aceleração (eixo + = subindo) e atrito atuando agora
+    function dynamics(){
+      const th = thetaDeg*Math.PI/180;
+      const gs = G*Math.sin(th), gc = G*Math.cos(th);
+      const P = m*G, N = P*Math.cos(th), Fpar = P*Math.sin(th);
+      let a, Fat, fatDir;               // fatDir: +1 = atrito aponta para cima do plano
+      if(v > EPS){ a = -(gs + mu*gc); Fat = mu*N; fatDir = -1; }
+      else if(v < -EPS){ a = -(gs - mu*gc); Fat = mu*N; fatDir = +1; }
+      else if(gs <= mu*gc){ a = 0; Fat = Fpar; fatDir = +1; }          // atrito estático segura
+      else if(x <= 0){ a = 0; Fat = mu*N; fatDir = +1; }              // encostado na base
+      else { a = -(gs - mu*gc); Fat = mu*N; fatDir = +1; }
+      return {a, Fat, fatDir, P, N, Fpar, th, gs, gc};
+    }
+
+    function step(hh){
+      const d = dynamics();
+      const vOld = v;
+      v += d.a*hh;
+      if(vOld > 0 && v <= 0) v = 0;     // parou no ponto mais alto
+      if(vOld < 0 && v >= 0) v = 0;
+      if(Math.abs(d.a) === 0 && Math.abs(vOld) <= EPS) v = 0;
+      x += v*hh;
+      if(x >= LM){ x = LM; if(v > 0) v = 0; }
+      if(x <= 0){ x = 0; if(v < 0) v = 0; }
+    }
+
+    function arrow(ctx, ox, oy, dx, dy, color, label, lx, ly){
+      const len = Math.hypot(dx, dy);
+      if(len < 7) return;
+      drawArrow(ctx, ox, oy, ox+dx, oy+dy, color, 2.5);
+      ctx.fillStyle = color; ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, ox+dx+(lx||6), oy+dy+(ly||4));
+    }
+
+    function draw(dt){
+      if(playing){
+        const n = 4;
+        for(let i=0;i<n;i++) step(dt/n);
+        t += dt;
+        if(Math.abs(v) > 0.05) hasMoved = true;
+        if(hasMoved && Math.abs(v) <= EPS){ restTimer += dt; if(restTimer > 1.5) init(); }
+        else restTimer = 0;
+      }
+      const d = dynamics();
+      const sgn = mode==='sobe' ? 1 : -1;      // eixo do gráfico: + no sentido inicial do movimento
+      const vDisp = sgn*v, aDisp = sgn*d.a;
+      if(playing){
+        history.push({x:t, y:vDisp});
+        const fatS = -d.fatDir*d.Fat;               // eixo + = para baixo do plano
+        hF.push({x:t, y:d.Fpar}); hFat.push({x:t, y:fatS}); hR.push({x:t, y:d.Fpar+fatS});
+        while(history.length && history[0].x < t-12){ history.shift(); hF.shift(); hFat.shift(); hR.shift(); }
+      }
+
+      const moving = Math.abs(v) > 0.01;
+      let regime;
+      if(v > 0.01) regime = 'subindo';
+      else if(v < -0.01) regime = 'descendo';
+      else if(d.gs <= mu*d.gc) regime = 'estático';
+      else regime = hasMoved ? 'parado' : 'repouso';
+
+      document.getElementById('pl-P').textContent = d.P.toFixed(1)+' N';
+      document.getElementById('pl-N').textContent = d.N.toFixed(1)+' N';
+      document.getElementById('pl-Fx').textContent = d.Fpar.toFixed(1)+' N';
+      document.getElementById('pl-Fat').textContent = d.Fat.toFixed(1)+' N';
+      document.getElementById('pl-a').textContent = aDisp.toFixed(2)+' m/s²';
+      document.getElementById('pl-v').textContent = vDisp.toFixed(1)+' m/s';
+      document.getElementById('pl-regime').textContent = regime;
+
+      // ----- canvas -----
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+      const th = d.th, sinT = Math.sin(th), cosT = Math.cos(th);
+      const mx = 34, baseY = h-34;
+      const Lpx = Math.max(120, Math.min((w-2*mx)/cosT, (h-130)/sinT));
+      const pxPerM = Lpx/LM;
+      const A = {x: w-mx, y: baseY};                 // vértice do ângulo θ
+      const ux = -cosT, uy = -sinT;                  // sentido "subindo"
+      const nx = sinT, ny = -cosT;                   // normal (para fora do plano)
+      const C = {x: A.x + ux*Lpx, y: A.y + uy*Lpx};  // topo
+      const B = {x: C.x, y: baseY};
+
+      ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.lineTo(C.x,C.y); ctx.closePath();
+      ctx.fillStyle = 'rgba(76,230,162,.05)'; ctx.fill();
+      ctx.strokeStyle = '#3a4a56'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = '#6b7d8b'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(C.x,C.y); ctx.stroke();
+      ctx.strokeStyle = '#1c252c'; ctx.lineWidth = 1;
+      for(let hx=B.x; hx<A.x; hx+=14){ ctx.beginPath(); ctx.moveTo(hx,baseY); ctx.lineTo(hx-8,baseY+10); ctx.stroke(); }
+      // marcações de 2 em 2 metros ao longo do plano
+      ctx.strokeStyle = '#2b3843'; ctx.lineWidth = 1.5;
+      for(let k=0; k<=LM; k+=2){
+        const tx = A.x + ux*k*pxPerM, ty = A.y + uy*k*pxPerM;
+        ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(tx-nx*7, ty-ny*7); ctx.stroke();
+      }
+      // ângulo
+      const r = Math.min(70, Lpx*0.22);
+      ctx.strokeStyle = '#8695a3'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(A.x, A.y, r, Math.PI, Math.PI+th, false); ctx.stroke();
+      ctx.fillStyle = '#8695a3'; ctx.font = '12px monospace'; ctx.textAlign = 'right';
+      ctx.fillText('θ = '+thetaDeg.toFixed(0)+'°', A.x - r - 8, A.y - 6);
+
+      // bloco apoiado sobre a superfície
+      const bs = Math.max(24, Math.min(42, Lpx*0.05));
+      const P0 = {x: A.x + ux*x*pxPerM, y: A.y + uy*x*pxPerM};
+      ctx.save();
+      ctx.translate(P0.x, P0.y);
+      ctx.rotate(th);
+      ctx.shadowColor = 'rgba(76,230,162,.7)'; ctx.shadowBlur = 12;
+      ctx.fillStyle = '#4ce6a2';
+      ctx.fillRect(-bs/2, -bs, bs, bs);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#0b1013'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('m', 0, -bs/2+4);
+      ctx.restore();
+
+      // vetores a partir do centro do bloco
+      const cx0 = P0.x + nx*bs/2, cy0 = P0.y + ny*bs/2;
+      const Lref = 70;
+      const Ptip = {x: cx0, y: cy0 + Lref};
+      const Ftip = {x: cx0 + cosT*Lref*sinT, y: cy0 + sinT*Lref*sinT};
+      const Ntip = {x: cx0 - nx*Lref*cosT, y: cy0 - ny*Lref*cosT};
+      ctx.strokeStyle = 'rgba(134,149,163,.55)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(Ptip.x,Ptip.y); ctx.lineTo(Ftip.x,Ftip.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(Ptip.x,Ptip.y); ctx.lineTo(Ntip.x,Ntip.y); ctx.stroke();
+      ctx.setLineDash([]);
+      arrow(ctx, cx0, cy0, 0, Lref, '#ff7a7a', 'P', 6, 12);
+      arrow(ctx, cx0, cy0, nx*Lref*cosT, ny*Lref*cosT, '#8695a3', 'N', 6, 0);
+      arrow(ctx, cx0, cy0, cosT*Lref*sinT, sinT*Lref*sinT, '#6fb8ff', 'F', 6, 10);
+      const lenFat = Lref*d.Fat/d.P;
+      arrow(ctx, cx0, cy0, d.fatDir*ux*lenFat, d.fatDir*uy*lenFat, '#ffb454', 'Fat', -34, -4);
+
+      // seta do sentido do movimento
+      if(moving){
+        const dirx = Math.sign(v)*ux, diry = Math.sign(v)*uy;
+        const sx = P0.x + nx*(bs+14), sy = P0.y + ny*(bs+14);
+        drawArrow(ctx, sx, sy, sx+dirx*34, sy+diry*34, '#4f5c68', 2);
+        ctx.fillStyle = '#8695a3'; ctx.font = '11px monospace'; ctx.textAlign = 'left';
+        ctx.fillText('v', sx+dirx*34+5, sy+diry*34);
+      }
+
+      // ----- gráfico -----
+      const gfit = fitCanvas(gGraph);
+      const vDownMax = Math.sqrt(2*Math.max(0, d.gs - mu*d.gc)*LM*0.9);
+      let ymin, ymax;
+      if(mode==='sobe'){ ymax = Math.max(v0,3)+1; ymin = -(Math.max(vDownMax,1)+1); }
+      else { ymax = Math.max(vDownMax,2)+1; ymin = 0; }
+      const win = 10;
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:Math.max(0,t-win), xmax:Math.max(win,t), ymin:ymin, ymax:ymax, points:history, color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'v', title:'v × t', fill:false});
+      const wmin = Math.max(0,t-win), wmax = Math.max(win,t);
+      const upF = (mode==='sobe' ? d.Fpar + mu*d.N : d.Fpar)*1.15 + 0.5;
+      const loF = -Math.max(d.Fpar, mu*d.N, 3)*1.15;
+      const gfF = fitCanvas(gGraphF);
+      plotMulti(gfF.ctx, gfF.w, gfF.h, {xmin:wmin, xmax:wmax, ymin:loF, ymax:upF, series:[
+        {points:hF, color:'rgba(111,184,255,1)', label:'F'},
+        {points:hFat, color:'rgba(255,180,84,1)', label:'Fat'},
+        {points:hR, color:'rgba(255,122,122,1)', label:'FR'}], xlabel:'t(s)', ylabel:'F', title:'Ao longo (+ ↓)', ticks:true});
+      const gfN = fitCanvas(gGraphN);
+      plotMulti(gfN.ctx, gfN.w, gfN.h, {xmin:wmin, xmax:wmax, ymin:0, ymax:d.P*1.15, series:[
+        {points:[{x:wmin,y:d.P},{x:wmax,y:d.P}], color:'rgba(255,122,122,1)', label:'P', noMarker:true},
+        {points:[{x:wmin,y:d.N},{x:wmax,y:d.N}], color:'rgba(134,149,163,1)', label:'N = P·cosθ', noMarker:true}], xlabel:'t(s)', ylabel:'F', title:'Perpendicular', ticks:true});
+    }
+    window.__pl_draw = draw;
+  })();
+
+  /* =========================================================
+     MOVIMENTO CURVILÍNEO (componentes tangencial e centrípeta)
+  ========================================================= */
+  (function(){
+    const canvas = document.getElementById('cv-canvas');
+    const gGraph = document.getElementById('cv-graph');
+    const gGraphF = document.getElementById('cv-graph-F');
+    const mSlider = document.getElementById('cv-m');
+    const mVal = document.getElementById('cv-m-val');
+    const vSlider = document.getElementById('cv-v');
+    const atSlider = document.getElementById('cv-at');
+    const RSlider = document.getElementById('cv-R');
+    const vVal = document.getElementById('cv-v-val');
+    const atVal = document.getElementById('cv-at-val');
+    const RVal = document.getElementById('cv-R-val');
+    const playBtn = document.getElementById('cv-play');
+    const resetBtn = document.getElementById('cv-reset');
+
+    let v0 = parseFloat(vSlider.value), at = parseFloat(atSlider.value), R = parseFloat(RSlider.value);
+    let m = parseFloat(mSlider.value);
+    let t = 0, playing = true, s = 0;
+    const TCV = 5;
+    let history = [], hFc = [], hFt = [], hFtot = [];
+
+    function reset(){ t=0; s=0; history=[]; hFc=[]; hFt=[]; hFtot=[]; }
+    mSlider.addEventListener('input', ()=>{ m=parseFloat(mSlider.value); mVal.textContent=m.toFixed(1)+' kg'; reset(); });
+    vSlider.addEventListener('input', ()=>{ v0=parseFloat(vSlider.value); vVal.textContent=v0.toFixed(1)+' m/s'; reset(); });
+    atSlider.addEventListener('input', ()=>{ at=parseFloat(atSlider.value); atVal.textContent=at.toFixed(2)+' m/s²'; reset(); });
+    RSlider.addEventListener('input', ()=>{ R=parseFloat(RSlider.value); RVal.textContent=R.toFixed(1)+' m'; reset(); });
+    playBtn.addEventListener('click', ()=>{ playing=!playing; playBtn.textContent = playing? '⏸ Pausar':'▶ Continuar'; });
+    resetBtn.addEventListener('click', reset);
+
+    function draw(dt){
+      if(playing){ t += dt; if(t>TCV){ reset(); t = 0; } }
+      const v = Math.max(0, v0 + at*t);
+      s += v*dt*(playing?1:0);
+      const ac = (v*v)/R;
+      const amag = Math.sqrt(ac*ac + at*at);
+
+      document.getElementById('cv-vread').textContent = v.toFixed(1)+' m/s';
+      document.getElementById('cv-ac').textContent = ac.toFixed(2)+' m/s²';
+      document.getElementById('cv-atread').textContent = at.toFixed(2)+' m/s²';
+      document.getElementById('cv-amag').textContent = amag.toFixed(2)+' m/s²';
+      const Fc = m*ac, Ft = m*at, Ftot = Math.sqrt(Fc*Fc + Ft*Ft);
+      document.getElementById('cv-Fc').textContent = Fc.toFixed(1)+' N';
+      document.getElementById('cv-Ft').textContent = Ft.toFixed(1)+' N';
+      document.getElementById('cv-Ftot').textContent = Ftot.toFixed(1)+' N';
+      if(playing){ history.push({x:t,y:v}); hFc.push({x:t,y:Fc}); hFt.push({x:t,y:Ft}); hFtot.push({x:t,y:Ftot}); }
+
+      const {ctx,w,h} = fitCanvas(canvas);
+      clear(ctx,w,h);
+      gridBg(ctx,w,h,40);
+
+      // draw an S-shaped curved path and a point moving along it with the angle following path curvature
+      const cx = w*0.5, cy = h*0.55;
+      const scale = Math.min(w,h)*0.3 / Math.max(R,1);
+      // path: define as a smooth curve using parametric points (visual only)
+      ctx.strokeStyle = '#2b3843'; ctx.lineWidth=2;
+      ctx.beginPath();
+      const N = 80;
+      const pathPts = [];
+      for(let i=0;i<=N;i++){
+        const u = i/N;
+        const px = cx - 140 + u*280;
+        const py = cy + 50*Math.sin(u*Math.PI*1.3) - 20;
+        pathPts.push({x:px,y:py});
+      }
+      pathPts.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+      ctx.stroke();
+
+      // position along path based on s (wrap)
+      const totalLen = 300;
+      let along = (s*12) % totalLen;
+      if(along<0) along += totalLen;
+      const u = along/totalLen;
+      const idx = Math.min(N-1, Math.max(0, Math.floor(u*N)));
+      const p = pathPts[idx];
+      const pNext = pathPts[Math.min(N,idx+1)];
+      const tangAngle = Math.atan2(pNext.y-p.y, pNext.x-p.x);
+
+      ctx.save();
+      ctx.shadowColor='rgba(76,230,162,.7)'; ctx.shadowBlur=12;
+      ctx.fillStyle='#4ce6a2';
+      ctx.beginPath(); ctx.arc(p.x,p.y,8,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // tangential vector (at)
+      const atLen = Math.min(40, Math.abs(at)*14)+4;
+      const atDir = at>=0 ? tangAngle : tangAngle+Math.PI;
+      drawArrow(ctx, p.x, p.y, p.x+atLen*Math.cos(atDir), p.y+atLen*Math.sin(atDir), '#ff7a7a', 2.3);
+      // centripetal (normal) vector, perpendicular to tangent, pointing toward curve's concave side (approx toward cy+50 center for this S shape — just use perpendicular upward)
+      const normAngle = tangAngle - Math.PI/2;
+      const acLen = Math.min(40, ac*5)+4;
+      drawArrow(ctx, p.x, p.y, p.x+acLen*Math.cos(normAngle), p.y+acLen*Math.sin(normAngle), '#6fb8ff', 2.3);
+      // resultant a
+      const aEndX = p.x + acLen*Math.cos(normAngle) + 0; // approx combine visually
+      ctx.font='11px monospace'; ctx.textAlign='left';
+      ctx.fillStyle='#ff7a7a'; ctx.fillText('at', p.x+atLen*Math.cos(atDir)+4, p.y+atLen*Math.sin(atDir));
+      ctx.fillStyle='#6fb8ff'; ctx.fillText('ac', p.x+acLen*Math.cos(normAngle)+4, p.y+acLen*Math.sin(normAngle));
+
+      ctx.fillStyle='#5b6a76'; ctx.font='11px monospace'; ctx.textAlign='center';
+      ctx.fillText('trajetória curvilínea (raio de curvatura R)', cx, h-14);
+
+      const gfit = fitCanvas(gGraph);
+      const vmax = Math.max(Math.abs(v0+at*TCV), v0, 3)+2;
+      plot(gfit.ctx, gfit.w, gfit.h, {xmin:0, xmax:TCV, ymin:0, ymax:vmax, points:history, color:'rgba(76,230,162,1)', xlabel:'t(s)', ylabel:'v', title:'v × t', ticks:true, fill:false});
+      let fpk = 5;
+      hFtot.forEach(p=>{ fpk = Math.max(fpk, p.y); });
+      const vEnd = Math.max(0, v0 + at*TCV);
+      fpk = Math.max(fpk, m*vEnd*vEnd/R, Math.abs(m*at));
+      const gfF = fitCanvas(gGraphF);
+      plotMulti(gfF.ctx, gfF.w, gfF.h, {xmin:0, xmax:TCV, ymin: at<0 ? -Math.abs(m*at)*1.2-1 : 0, ymax:fpk*1.15, series:[
+        {points:hFc, color:'rgba(111,184,255,1)', label:'Fc'},
+        {points:hFt, color:'rgba(255,122,122,1)', label:'Ft'},
+        {points:hFtot, color:'rgba(255,180,84,1)', label:'F'}], xlabel:'t(s)', ylabel:'F', title:'Forças × t', ticks:true});
+    }
+    window.__cv_draw = draw;
+  })();
+
+  /* ---------- main animation loop ---------- */
+  let last = performance.now();
+  function loop(now){
+    const dt = Math.min(0.05, (now-last)/1000);
+    last = now;
+    if(activeTopic==='inercia') window.__in_draw(dt);
+    else if(activeTopic==='pfd') window.__pfd_draw(dt);
+    else if(activeTopic==='acaoreacao') window.__ar_draw(dt);
+    else if(activeTopic==='hooke') window.__ho_draw(dt);
+    else if(activeTopic==='atwood') window.__at_draw(dt);
+    else if(activeTopic==='atrito') window.__atr_draw(dt);
+    else if(activeTopic==='plano') window.__pl_draw(dt);
+    else if(activeTopic==='curvilineo') window.__cv_draw(dt);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
