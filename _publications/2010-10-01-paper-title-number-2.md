@@ -7,7 +7,7 @@ excerpt: 'Dashboard interativo com simulações ao vivo para projeção em sala,
 date: 2026-10-18
 venue: ''
 slidesurl: 'https://academicpages.github.io/files/slides2.pdf'
-paperurl: 'https://andrewdsam.github.io/files/dinamica-aula(1).html'
+paperurl: 'https://andrewdsam.github.io/files/dinamica-aula.html'
 citation: 'Your Name, You. (2010). &quot;Paper Title Number 2.&quot; <i>Journal 1</i>. 1(2).'
 ---
 
